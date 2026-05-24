@@ -1,0 +1,57 @@
+version: "3.8"
+services:
+  mongo:
+    image: mongo:7
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+
+  qdrant:
+    image: qdrant/qdrant:v1.11.4
+    restart: always
+    volumes:
+      - qdrant-data:/qdrant/storage
+
+  backend:
+    build:
+      context: ./backend
+    restart: always
+    depends_on:
+      - mongo
+      - redis
+      - qdrant
+    env_file: .env
+    ports:
+      - "5000:5000"
+
+  worker:
+    build:
+      context: ./backend
+    restart: always
+    command: ["npm", "run", "worker"]
+    env_file: .env
+    depends_on:
+      - backend
+      - redis
+      - mongo
+      - qdrant
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: always
+    ports:
+      - "80:80"
+    env_file: .env
+
+volumes:
+  mongo-data:
+  redis-data:
+  qdrant-data:

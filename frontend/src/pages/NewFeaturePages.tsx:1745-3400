@@ -1,0 +1,850 @@
+// ═══════════════════════════════════════════════════════════════════════════════
+// 4. AI ESSAY GRADER
+// ═══════════════════════════════════════════════════════════════════════════════
+export const EssayGraderPage: React.FC = () => {
+  const { user } = useAuthStore();
+  const [view, setView] = useState<"form" | "grading" | "result" | "history">("form");
+  const [grades, setGrades] = useState<EssayGrade[]>([]);
+  const [activeGrade, setActiveGrade] = useState<EssayGrade | null>(null);
+  
+  const [form, setForm] = useState({
+    question: "",
+    answer: "",
+    subject: "",
+    maxMarks: 20,
+  });
+  
+  const [submitting, setSubmitting] = useState(false);
+  const gradeColors: Record<string, string> = {
+    A: "var(--color-secondary)",
+    B: "var(--color-primary)",
+    C: "var(--color-secondary-light)",
+    D: "var(--color-accent)",
+    E: "var(--color-accent)",
+    U: "var(--danger)",
+  };
+
+  useEffect(() => {
+    essayApi
+      .getAll()
+      .then((r) => setGrades((r.data as any).data?.grades || []))
+      .catch(() => {});
+  }, []);
+
+  const submitEssay = async () => {
+    if (!form.question || !form.answer) { toast.error("Question and response required"); return; }
+    if (form.answer.trim().split(" ").length < 30) { toast.error("Analytical depth too low (min 30 words)"); return; }
+    setSubmitting(true); setView("grading");
+    try {
+      const r = await essayApi.grade(form);
+      const grade = (r.data as any).data?.grade;
+      setActiveGrade(grade);
+      setGrades((prev) => [grade, ...prev]);
+      setView("result");
+    } catch {
+      toast.error("Grading sequence failed");
+      setView("form");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h2 className="text-3xl font-bold font-serif text-ink mb-2">AI Paper Examiner</h2>
+          <p className="text-sm text-ink3 font-medium">Professional ZIMSEC-style assessment of long-form academic responses</p>
+        </div>
+        <div className="flex gap-2 p-1 bg-surface2 rounded-2xl border border-border2">
+          <button onClick={() => setView("form")} className={clsx("px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", view === 'form' || view === 'result' ? 'bg-surface text-primary shadow-lg border border-border2' : 'text-ink3 hover:text-ink')}>Active Lab</button>
+          <button onClick={() => setView("history")} className={clsx("px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", view === 'history' ? 'bg-surface text-primary shadow-lg border border-border2' : 'text-ink3 hover:text-ink')}>Grade Archive ({grades.length})</button>
+        </div>
+      </div>
+
+      {view === "form" && (
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-8 items-start">
+          <Card className="p-8 shadow-2xl border-border2">
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-1.5">
+                   <label className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em] px-1">Syllabus Hub</label>
+                   <Input placeholder="e.g. Advanced Sociology" value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} />
+                </div>
+                <div className="space-y-1.5">
+                   <label className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em] px-1">Mark Capacity</label>
+                   <select className="input text-sm font-bold bg-bg" value={form.maxMarks} onChange={e => setForm({...form, maxMarks: +e.target.value})}>
+                     {[10, 15, 20, 25, 30].map(m => <option key={m} value={m}>{m} Points</option>)}
+                   </select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em] px-1">Formal Question</label>
+                <textarea 
+                  className="input min-h-[100px] text-sm font-bold" 
+                  placeholder="Paste the examination question verbatim..." 
+                  value={form.question}
+                  onChange={e => setForm({...form, question: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center px-1 mb-2">
+                   <label className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em]">Academic Response</label>
+                   <Badge variant="blue" className="text-[9px]">{form.answer.trim().split(/\s+/).filter(Boolean).length} Words</Badge>
+                </div>
+                <textarea 
+                  className="w-full bg-bg border-2 border-border2 rounded-2xl p-8 text-lg font-medium focus:ring-8 focus:ring-primary/5 focus:border-primary outline-none transition-all shadow-inner min-h-[500px] leading-loose" 
+                  placeholder="Synthesize your comprehensive response..." 
+                  value={form.answer}
+                  onChange={e => setForm({...form, answer: e.target.value})}
+                />
+              </div>
+
+              <Button size="lg" className="w-full h-16 shadow-2xl text-lg gap-3" onClick={submitEssay} loading={submitting}>
+                 <Sparkles size={24} /> Execute AI Assessment Protocol
+              </Button>
+            </div>
+          </Card>
+
+          <aside className="space-y-6">
+             <Card className="bg-bg-light/50 dark:bg-bg-dark/50 border-dashed border-2">
+                <h4 className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                   <ShieldCheck size={14} /> Evaluation Matrix
+                </h4>
+                <div className="space-y-4">
+                   {[
+                     { l: "Knowledge", p: "50%", d: "Accuracy and depth of specific syllabus content." },
+                     { l: "Synthesis", p: "25%", d: "Structural integrity and argumentative flow." },
+                     { l: "Precision", p: "25%", d: "Academic register, grammar, and technical vocabulary." },
+                   ].map(c => (
+                     <div key={c.l} className="p-4 rounded-xl bg-surface border border-border2 shadow-soft">
+                        <div className="flex justify-between items-center mb-1">
+                           <p className="text-xs font-black text-ink">{c.l}</p>
+                           <span className="text-[10px] font-black text-primary">{c.p}</span>
+                        </div>
+                        <p className="text-[10px] font-medium text-ink3 leading-relaxed">{c.d}</p>
+                     </div>
+                   ))}
+                </div>
+             </Card>
+
+             <Card className="bg-primary/[0.03] border-primary/10">
+                <p className="text-xs font-bold text-ink2 leading-relaxed italic">
+                  "AI examiners are calibrated against ZIMSEC 2026 standards for <strong>{user?.educationLevel}</strong>. Grading is diagnostic; use results to target revision."
+                </p>
+             </Card>
+          </aside>
+        </div>
+      )}
+
+      {view === "grading" && (
+        <div className="py-32 flex flex-col items-center gap-8">
+           <div className="relative">
+             <Spinner size={64} className="text-primary" />
+             <div className="absolute inset-0 flex items-center justify-center">
+                <PenTool size={28} className="text-primary animate-bounce" />
+             </div>
+           </div>
+           <div className="text-center space-y-2">
+              <h3 className="text-2xl font-black font-serif text-ink">Analyzing Academic Synthesis</h3>
+              <p className="text-xs font-black text-ink3 uppercase tracking-[0.3em] animate-pulse">Running semantic scan · Cross-referencing mark scheme · Projecting grade</p>
+           </div>
+        </div>
+      )}
+
+      {view === "result" && activeGrade && (
+        <div className="space-y-8 animate-in slide-in-from-bottom-8 duration-700">
+           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card className="text-center p-8 border-2" style={{ borderColor: `${gradeColors[activeGrade.grade]}30` }}>
+                 <div className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-white mb-4 shadow-2xl" style={{ backgroundColor: gradeColors[activeGrade.grade] }}>
+                    <span className="text-4xl font-black font-serif">{activeGrade.grade}</span>
+                 </div>
+                 <p className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em]">Syllabus Grade</p>
+              </Card>
+              <Card className="text-center p-8 border-border2">
+                 <h4 className="text-4xl font-black font-serif text-ink mb-1 tracking-tighter">
+                   {activeGrade.earnedMarks}<span className="text-lg opacity-20">/{activeGrade.maxMarks}</span>
+                 </h4>
+                 <p className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em]">Raw Score Matrix</p>
+              </Card>
+              <Card className="text-center p-8 border-border2">
+                 <h4 className="text-4xl font-black font-serif text-ink mb-1 tracking-tighter">{activeGrade.wordCount}</h4>
+                 <p className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em]">Lexical Volume</p>
+              </Card>
+           </div>
+
+           <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 items-start">
+              <div className="space-y-6">
+                 <Card className="p-10 shadow-soft">
+                    <h3 className="text-lg font-black font-serif text-ink mb-10 flex items-center gap-3">
+                       <Target size={20} className="text-primary" /> Evaluation Breakdown
+                    </h3>
+                    <div className="space-y-10">
+                       {activeGrade.criteria.map(c => (
+                         <div key={c.name} className="space-y-4">
+                            <div className="flex justify-between items-end">
+                               <div>
+                                  <h4 className="text-sm font-black text-ink uppercase tracking-wider">{c.name}</h4>
+                                  <p className="text-[10px] font-bold text-ink3 uppercase tracking-widest">{c.maxMarks} Points Max</p>
+                               </div>
+                               <span className="text-2xl font-black text-primary">{c.earnedMarks}</span>
+                            </div>
+                            <ProgressBar value={(c.earnedMarks/c.maxMarks)*100} className="!gap-1 h-2" color="var(--color-primary)" />
+                            <p className="text-sm font-medium text-ink2 leading-relaxed bg-bg-light/50 dark:bg-bg-dark/50 p-4 rounded-xl border border-border2 italic">"{c.feedback}"</p>
+                         </div>
+                       ))}
+                    </div>
+                 </Card>
+
+                 <Card className="bg-primary/[0.02] border-primary/10 p-10">
+                    <h3 className="text-lg font-black font-serif text-ink mb-6">Strategic Summary</h3>
+                    <p className="text-lg font-medium text-ink2 leading-loose">{activeGrade.overallFeedback}</p>
+                 </Card>
+              </div>
+
+              <aside className="space-y-6">
+                 <Card className="p-8 border-t-4 border-t-secondary">
+                    <h4 className="text-sm font-black uppercase tracking-widest text-secondary flex items-center gap-2 mb-6">
+                       <CheckCircle2 size={18} /> Proficiencies
+                    </h4>
+                    <div className="space-y-3">
+                       {activeGrade.strengths.map((s, i) => (
+                         <div key={i} className="p-4 rounded-xl bg-secondary/[0.03] border border-secondary/10 text-xs font-bold text-ink2 leading-relaxed">
+                            {s}
+                         </div>
+                       ))}
+                    </div>
+                 </Card>
+
+                 <Card className="p-8 border-t-4 border-t-warn">
+                    <h4 className="text-sm font-black uppercase tracking-widest text-warn flex items-center gap-2 mb-6">
+                       <TrendingUp size={18} /> Optimizations
+                    </h4>
+                    <div className="space-y-3">
+                       {activeGrade.improvements.map((s, i) => (
+                         <div key={i} className="p-4 rounded-xl bg-warn/[0.03] border border-warn/10 text-xs font-bold text-ink2 leading-relaxed">
+                            {s}
+                         </div>
+                       ))}
+                    </div>
+                 </Card>
+
+                 {activeGrade.modelAnswer && (
+                   <Card className="p-8">
+                      <h4 className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2 mb-6">
+                         <Volume2 size={18} /> Ideal Response
+                      </h4>
+                      <p className="text-[11px] font-medium text-ink3 leading-relaxed max-h-[300px] overflow-y-auto scrollbar-hidden">
+                        {activeGrade.modelAnswer}
+                      </p>
+                      <Button variant="ghost" size="sm" className="w-full mt-6 border-t border-border2 rounded-none pt-4 text-[10px] font-black uppercase tracking-widest" onClick={() => { setForm({...form, answer: activeGrade.modelAnswer!}); setView('form'); }}>
+                        Synthesize New Lab
+                      </Button>
+                   </Card>
+                 )}
+              </aside>
+           </div>
+        </div>
+      )}
+
+      {view === "history" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+           {grades.length === 0 ? (
+             <div className="col-span-full"><EmptyState icon={<FileText size={40} />} title="Archive Empty" description="Grade an essay to begin building your academic record." action={<Button onClick={() => setView('form')}>Initialize Lab</Button>} /></div>
+           ) : (
+             grades.map(g => (
+               <Card key={g._id} hoverable onClick={() => { setActiveGrade(g); setView('result'); }} className="group">
+                  <div className="flex items-center gap-5">
+                     <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg shrink-0 group-hover:scale-110 transition-transform" style={{ backgroundColor: gradeColors[g.grade] || 'var(--color-primary)' }}>
+                        {g.grade}
+                     </div>
+                     <div className="flex-1 min-w-0">
+                        <h4 className="text-base font-bold text-ink truncate mb-1">{g.question}</h4>
+                        <div className="flex items-center gap-4 text-[10px] font-black text-ink3 uppercase tracking-widest">
+                           <span className="flex items-center gap-1.5"><Target size={12} /> {g.subject || 'Core'}</span>
+                           <span>•</span>
+                           <span className="flex items-center gap-1.5"><Activity size={12} /> {g.percentage}%</span>
+                        </div>
+                     </div>
+                     <ChevronRight size={16} className="text-ink3 group-hover:text-primary transition-all" />
+                  </div>
+               </Card>
+             ))
+           )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 5. VOICE CHAT WITH AI TUTOR
+// ═══════════════════════════════════════════════════════════════════════════════
+export const VoiceTutorPage: React.FC = () => {
+  const { user } = useAuthStore();
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const [response, setResponse] = useState("");
+  const [processing, setProcessing] = useState(false);
+  const [conversation, setConversation] = useState<Array<{ type: "user" | "ai"; text: string }>>([]);
+  const [subject, setSubject] = useState("");
+  const [language, setLanguage] = useState(user?.preferredLanguage || "english");
+  const [supported, setSupported] = useState(true);
+  const recognitionRef = useRef<any>(null);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
+  const conversationEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+      setSupported(false); return;
+    }
+    synthRef.current = window.speechSynthesis;
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRec();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = language === "english" ? "en-ZW" : language === "shona" ? "sn" : "nd";
+
+    recognition.onresult = (e: any) => {
+      const t = Array.from(e.results).map((r: any) => r[0].transcript).join("");
+      setTranscript(t);
+    };
+    recognition.onend = () => { setIsListening(false); if (transcript) sendToAI(transcript); };
+    recognition.onerror = () => { setIsListening(false); toast.error("Audio uplink failure"); };
+    recognitionRef.current = recognition;
+  }, [language]);
+
+  useEffect(() => { conversationEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [conversation]);
+
+  const startListening = () => { if (!supported) return; setTranscript(""); setIsListening(true); recognitionRef.current?.start(); };
+  const stopListening = () => { setIsListening(false); recognitionRef.current?.stop(); };
+
+  const sendToAI = async (text: string) => {
+    if (!text.trim()) return;
+    setConversation((c) => [...c, { type: "user", text }]);
+    setTranscript(""); setProcessing(true);
+    try {
+      const r = await voiceApi.process({ transcript: text, subject, language });
+      const aiText = (r.data as any).data?.response || "";
+      setConversation((c) => [...c, { type: "ai", text: aiText }]);
+      setResponse(aiText);
+      if (synthRef.current && aiText) {
+        synthRef.current.cancel();
+        const utterance = new SpeechSynthesisUtterance(aiText);
+        utterance.lang = language === "english" ? "en-ZW" : "en";
+        utterance.rate = 0.95;
+        synthRef.current.speak(utterance);
+      }
+    } catch {
+      toast.error("AI relay failure");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const stopSpeaking = () => synthRef.current?.cancel();
+
+  if (!supported) return (
+    <div className="max-w-2xl mx-auto py-20 text-center space-y-8">
+       <div className="w-24 h-24 rounded-3xl bg-red-500/10 text-red-500 mx-auto flex items-center justify-center"><MicOff size={48} /></div>
+       <h3 className="text-2xl font-black font-serif text-ink">Voice Protocol Unsupported</h3>
+       <p className="text-sm font-medium text-ink3 leading-relaxed">Your current browser environment does not support high-fidelity speech recognition. Chrome or Edge recommended.</p>
+    </div>
+  );
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h2 className="text-3xl font-bold font-serif text-ink mb-2">Vocal Tutor Hub</h2>
+          <p className="text-sm text-ink3 font-medium">Real-time natural language interaction for fluid learning</p>
+        </div>
+        <Badge variant="teal" className="gap-2"><Volume2 size={12} /> Neural Voice Active</Badge>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
+        <div className="space-y-6">
+           <Card className="h-[500px] flex flex-col p-0 border-border2 overflow-hidden shadow-2xl relative">
+              <div className="p-4 px-6 border-b border-border2 bg-surface/50 backdrop-blur-sm sticky top-0 z-10 flex justify-between items-center">
+                 <div className="flex items-center gap-3">
+                   <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                   <span className="text-[10px] font-black uppercase tracking-widest text-ink">Vocal Uplink Established</span>
+                 </div>
+                 <Button variant="ghost" size="sm" className="text-[9px] h-7 px-3 uppercase tracking-widest font-black" onClick={() => setConversation([])}>Purge Log</Button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hidden">
+                 {conversation.length === 0 && !processing && (
+                   <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
+                      <div className="w-20 h-20 rounded-full border-2 border-dashed border-ink3 flex items-center justify-center mb-6"><Mic size={32} /></div>
+                      <p className="text-sm font-bold uppercase tracking-widest">Speak to Initialize</p>
+                   </div>
+                 )}
+
+                 {conversation.map((msg, i) => (
+                   <div key={i} className={clsx(
+                     "flex gap-4 animate-in slide-in-from-bottom-2 duration-300",
+                     msg.type === 'user' ? "flex-row-reverse" : "flex-row"
+                   )}>
+                      <div className={clsx(
+                        "w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shrink-0",
+                        msg.type === 'ai' ? "bg-primary text-white" : "bg-surface2 text-ink2 border border-border2"
+                      )}>
+                        {msg.type === 'ai' ? <BrainCircuit size={16} /> : <User size={16} />}
+                      </div>
+                      <div className={clsx(
+                        "max-w-[85%] p-5 rounded-2xl text-sm font-medium leading-loose shadow-soft border",
+                        msg.type === 'ai' ? "bg-surface border-border2 text-ink rounded-tl-none" : "bg-primary border-primary text-white rounded-tr-none"
+                      )}>
+                        {msg.text}
+                      </div>
+                   </div>
+                 ))}
+
+                 {processing && (
+                   <div className="flex gap-4">
+                      <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shadow-lg"><BrainCircuit size={16} /></div>
+                      <TypingIndicator />
+                   </div>
+                 )}
+                 <div ref={conversationEndRef} />
+              </div>
+
+              {/* Transcript Wave HUD */}
+              {(isListening || transcript) && (
+                <div className="p-6 bg-primary/[0.02] border-t border-border2 animate-in slide-in-from-bottom-4">
+                   <div className="flex items-center gap-4">
+                      <div className="flex gap-1 shrink-0 h-4">
+                         {[1,2,3,4,5].map(i => <div key={i} className="w-1 h-full bg-primary rounded-full animate-bounce" style={{ animationDelay: `${i*100}ms` }} />)}
+                      </div>
+                      <p className="text-sm font-bold text-primary italic truncate">
+                        {isListening && !transcript ? "Listening for vocal patterns..." : transcript}
+                      </p>
+                   </div>
+                </div>
+              )}
+           </Card>
+
+           <div className="flex flex-col items-center gap-6 py-4">
+              <div className="flex items-center gap-4">
+                 <button 
+                   onClick={isListening ? stopListening : startListening}
+                   disabled={processing}
+                   className={clsx(
+                     "w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500 group relative",
+                     isListening ? "bg-red-500 shadow-[0_0_40px_rgba(239,68,68,0.4)]" : "bg-primary shadow-[0_0_40px_rgba(37,99,235,0.3)] hover:scale-110"
+                   )}
+                 >
+                    <div className="absolute inset-0 rounded-full border-4 border-white/20 animate-ping opacity-20" />
+                    {processing ? <Spinner size={32} /> : isListening ? <MicOff size={32} className="text-white" /> : <Mic size={32} className="text-white" />}
+                 </button>
+                 <Button variant="ghost" onClick={stopSpeaking} className="text-[10px] font-black uppercase tracking-widest hover:text-red-500">Mute Audio AI</Button>
+              </div>
+              <p className="text-[10px] font-black text-ink3 uppercase tracking-[0.3em]">{isListening ? "Release to process" : "Tap for vocal uplink"}</p>
+           </div>
+        </div>
+
+        <aside className="space-y-6">
+           <Card>
+              <h4 className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em] mb-6 border-b border-border2 pb-4">Tuning Matrix</h4>
+              <div className="space-y-5">
+                 <div className="space-y-1.5">
+                   <label className="text-[10px] font-black text-ink3 uppercase tracking-widest px-1">Subject Focus</label>
+                   <Input placeholder="e.g. Biology" value={subject} onChange={e => setSubject(e.target.value)} />
+                 </div>
+                 <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-ink3 uppercase tracking-widest px-1">Active Dialect</label>
+                    <div className="grid grid-cols-1 gap-2">
+                       {["english", "shona", "ndebele"].map(l => (
+                         <button 
+                           key={l} 
+                           onClick={() => setLanguage(l as any)}
+                           className={clsx(
+                             "px-4 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest text-left transition-all",
+                             language === l ? "bg-primary text-white border-primary shadow-lg" : "bg-bg border-border2 text-ink2 hover:bg-surface2"
+                           )}
+                         >
+                            {l}
+                         </button>
+                       ))}
+                    </div>
+                 </div>
+              </div>
+           </Card>
+
+           <Card className="bg-bg-light/50 dark:bg-bg-dark/50 border-dashed border-2">
+              <h4 className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em] mb-4">Vocal Directives</h4>
+              <div className="space-y-3">
+                 {[
+                   "State 'explain' for deep synthesis",
+                   "Request 'examples' for case studies",
+                   "Ask for 'ZIMSEC alignment'",
+                   "Toggle Shona for cultural context"
+                 ].map(t => (
+                   <p key={t} className="text-[10px] font-bold text-ink2 leading-relaxed flex items-center gap-2"><ChevronRight size={10} className="text-primary" /> {t}</p>
+                 ))}
+              </div>
+           </Card>
+        </aside>
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 6. PAST PAPER BANK
+// ═══════════════════════════════════════════════════════════════════════════════
+export const PastPapersPage: React.FC = () => {
+  const navigate = useNavigate();
+  return (
+    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h2 className="text-3xl font-bold font-serif text-ink mb-2">Examination Archive</h2>
+          <p className="text-sm text-ink3 font-medium">Deep repository of historical ZIMSEC examination papers and AI analysis</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[
+          { icon: <FileText size={32} />, title: "Ingest Past Paper", desc: "Upload historical PDF artifacts for AI structural indexing and question extraction.", label: "Initialize Ingest", path: "/documents", color: "bg-primary" },
+          { icon: <ClipboardList size={32} />, title: "Synthesize Simulated Exam", desc: "AI generates high-fidelity examinations mimicking historical paper patterns.", label: "Start Synthesis", path: "/exam-simulator", color: "bg-secondary" },
+          { icon: <PenTool size={32} />, title: "Analytical Response Grading", desc: "Submit responses to historical prompts for immediate AI grading protocols.", label: "Launch Examiner", path: "/essay-grader", color: "bg-accent" },
+        ].map((item, i) => (
+          <Card key={i} hoverable onClick={() => navigate({ to: item.path as any })} className="group text-center p-10 cursor-pointer flex flex-col justify-between h-full border-border2">
+             <div>
+                <div className={clsx("w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-white mb-8 shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:-rotate-3", item.color)}>
+                  {item.icon}
+                </div>
+                <h3 className="text-xl font-bold font-serif text-ink mb-4">{item.title}</h3>
+                <p className="text-sm font-medium text-ink3 leading-relaxed mb-10">{item.desc}</p>
+             </div>
+             <Button size="lg" className={clsx("w-full h-14 rounded-2xl font-black uppercase tracking-widest text-[10px]", item.color)}>{item.label}</Button>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="bg-bg-light/50 dark:bg-bg-dark/50 border-dashed border-2 p-12">
+         <h4 className="text-[10px] font-black text-ink3 uppercase tracking-[0.3em] mb-10 text-center">Standard Archive Workflow</h4>
+         <div className="grid grid-cols-1 sm:grid-cols-4 gap-8">
+            {[
+              { n: "01", t: "Ingestion", d: "Upload PDF material to the secure Knowledge Vault." },
+              { n: "02", t: "Extraction", d: "AI identifies questions, mark schemes, and target topics." },
+              { n: "03", t: "Execution", d: "Perform active recall sessions using extracted challenges." },
+              { n: "04", t: "Verification", d: "AI marks responses against curriculum standards." }
+            ].map(s => (
+              <div key={s.n} className="space-y-4 relative group">
+                 <div className="text-4xl font-black font-serif text-primary/10 group-hover:text-primary/20 transition-colors absolute -top-8 -left-4 select-none">{s.n}</div>
+                 <h5 className="text-sm font-black text-ink uppercase tracking-widest relative z-10">{s.t}</h5>
+                 <p className="text-[11px] font-medium text-ink3 leading-relaxed relative z-10">{s.d}</p>
+              </div>
+            ))}
+         </div>
+      </Card>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 7. CODE PRACTICE SANDBOX
+// ═══════════════════════════════════════════════════════════════════════════════
+export const CodeSandboxPage: React.FC = () => {
+  const { user } = useAuthStore();
+  const [code, setCode] = useState('# Write your Python logic here\nprint("Intelligence initialized.")');
+  const [language, setLanguage] = useState("python");
+  const [output, setOutput] = useState("");
+  const [running, setRunning] = useState(false);
+  const [aiReview, setAiReview] = useState("");
+  const [reviewing, setReviewing] = useState(false);
+  const [challenge, setChallenge] = useState<any>(null);
+  const [loadingChallenge, setLoadingChallenge] = useState(false);
+
+  const LANGUAGES = [
+    { id: "python", label: "Python", default: '# Write your Python logic here\nprint("Intelligence initialized.")' },
+    { id: "javascript", label: "JavaScript", default: '// JavaScript runtime\nconsole.log("Intelligence initialized.");' },
+    { id: "java", label: "Java", default: 'public class Main {\n  public static void main(String[] args) {\n    System.out.println("Intelligence initialized.");\n  }\n}' },
+  ];
+
+  const runCode = async () => {
+    setRunning(true); setOutput("Executing code on virtual sandbox...");
+    try {
+      // Logic for code execution would go here if Judge0 integration is active
+      setTimeout(() => {
+        setOutput("⚠️ Code execution requires Judge0 API verification in system environment.\n\n[SIMULATED OUTPUT]\nIntelligence initialized.\nExecution time: 42ms");
+        setRunning(false);
+      }, 1500);
+    } catch {
+      setOutput("⚠️ Execution error: Check console telemetry.");
+      setRunning(false);
+    }
+  };
+
+  const getAIReview = async () => {
+    setReviewing(true);
+    try {
+      const r = await voiceApi.process({
+        transcript: `Review this ${language} code for correctness and best practices:\n\n\`\`\`${language}\n${code}\n\`\`\``,
+        subject: "Computer Science",
+      });
+      setAiReview((r.data as any).data?.response || "");
+    } catch { toast.error("AI Code Analysis failed"); } finally { setReviewing(false); }
+  };
+
+  const getChallenge = async () => {
+    setLoadingChallenge(true);
+    try {
+      const r = await voiceApi.process({
+        transcript: `Generate a ${user?.educationLevel || "O-Level"} Computer Science challenge in ${language}.`,
+        subject: "Computer Science",
+      });
+      setChallenge((r.data as any).data?.response || "");
+      setLoadingChallenge(false);
+    } catch { toast.error("Challenge synthesis failed"); setLoadingChallenge(false); }
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-8 animate-fade-in pb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h2 className="text-3xl font-bold font-serif text-ink mb-2">Code Synthesis Lab</h2>
+          <p className="text-sm text-ink3 font-medium">Virtual environment for algorithmic practice and AI debugging</p>
+        </div>
+        <div className="flex gap-2">
+           <Button variant="outline" size="sm" className="gap-2 font-black uppercase text-[10px] tracking-widest shadow-md" onClick={getChallenge} loading={loadingChallenge}>
+              <Sparkles size={14} /> Synthesize Challenge
+           </Button>
+           <Button size="sm" className="gap-2 font-black uppercase text-[10px] tracking-widest shadow-lg" onClick={runCode} loading={running}>
+              <Terminal size={14} /> Execute Runtime
+           </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-start">
+         <div className="space-y-4">
+            <div className="flex items-center gap-2 p-1 bg-surface2 rounded-2xl w-fit border border-border2">
+               {LANGUAGES.map(l => (
+                 <button key={l.id} onClick={() => { setLanguage(l.id); setCode(l.default); }} className={clsx("px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", language === l.id ? 'bg-surface text-primary shadow-lg border border-border2' : 'text-ink3 hover:text-ink')}>
+                    {l.label}
+                 </button>
+               ))}
+            </div>
+
+            <Card className="p-0 overflow-hidden border-2 border-border2 shadow-2xl">
+               <div className="bg-[#1e1e2e] p-4 flex items-center justify-between border-b border-white/5">
+                  <div className="flex gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500/50" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500/50" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500/50" />
+                  </div>
+                  <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">{language} source terminal</span>
+               </div>
+               <textarea
+                 className="w-full bg-[#1e1e2e] text-[#cdd6f4] p-10 font-mono text-base leading-loose focus:outline-none min-h-[500px] resize-vertical scrollbar-hidden"
+                 value={code}
+                 onChange={e => setCode(e.target.value)}
+                 spellCheck={false}
+               />
+               <div className="bg-[#181825] p-8 border-t border-white/5 min-h-[150px]">
+                  <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-4">Standard Output</p>
+                  <pre className="font-mono text-xs text-secondary leading-relaxed whitespace-pre-wrap">{output || 'Waiting for execution signal...'}</pre>
+               </div>
+            </Card>
+         </div>
+
+         <aside className="space-y-6 sticky top-24">
+            {challenge && (
+              <Card className="bg-primary/[0.02] border-primary/20 p-8 shadow-xl">
+                 <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-6 flex items-center gap-2"><Sparkles size={14} /> Active Directive</h4>
+                 <div className="text-xs font-bold text-ink2 leading-loose prose prose-invert">{challenge}</div>
+              </Card>
+            )}
+
+            <Card className="p-8">
+               <div className="flex justify-between items-center mb-8 border-b border-border2 pb-4">
+                  <h4 className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em]">Diagnostic Review</h4>
+                  <Button variant="ghost" size="sm" onClick={getAIReview} loading={reviewing} className="text-primary font-black uppercase text-[10px] tracking-widest px-0">Initialize</Button>
+               </div>
+               {aiReview ? (
+                 <p className="text-xs font-medium text-ink2 leading-loose italic">"{aiReview}"</p>
+               ) : (
+                 <p className="text-[10px] font-bold text-ink3 leading-relaxed text-center py-10">Select 'Initialize' for AI-powered code analysis and efficiency diagnostics.</p>
+               )}
+            </Card>
+
+            <Card className="bg-bg-light/50 dark:bg-bg-dark/50 border-dashed border-2">
+               <h4 className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em] mb-6">Lab Commands</h4>
+               <div className="space-y-4">
+                  {[
+                    { k: "CMD + ENTER", d: "Relay to runtime" },
+                    { k: "SHIFT + R", d: "Initialize AI review" },
+                    { k: "TAB", d: "Indent block logic" }
+                  ].map(c => (
+                    <div key={c.k} className="flex justify-between items-center gap-4">
+                       <kbd className="px-2 py-1 rounded bg-surface border border-border2 text-[9px] font-black shadow-inner">{c.k}</kbd>
+                       <p className="text-[9px] font-bold text-ink3 uppercase">{c.d}</p>
+                    </div>
+                  ))}
+               </div>
+            </Card>
+         </aside>
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 8. COLLABORATIVE WHITEBOARD
+// ═══════════════════════════════════════════════════════════════════════════════
+export const WhiteboardPage: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [tool, setTool] = useState<"pen" | "eraser" | "line" | "rect" | "text">("pen");
+  const [color, setColor] = useState("#2563eb");
+  const [size, setSize] = useState(4);
+  const [history, setHistory] = useState<ImageData[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const lastPos = useRef<{ x: number; y: number } | null>(null);
+  const startPos = useRef<{ x: number; y: number } | null>(null);
+  const [textInput, setTextInput] = useState("");
+  const [textPos, setTextPos] = useState<{ x: number; y: number } | null>(null);
+
+  const COLORS = ["#111827", "#2563eb", "#14b8a6", "#f59e0b", "#ef4444", "#7c3aed", "#ec4899", "#ffffff"];
+
+  useEffect(() => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    saveState();
+  }, []);
+
+  const getPos = (e: any) => {
+    const canvas = canvasRef.current!; const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  };
+
+  const saveState = () => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    setHistory((prev) => { const n = prev.slice(0, historyIndex + 1); n.push(imageData); setHistoryIndex(n.length - 1); return n; });
+  };
+
+  const undo = () => { if (historyIndex <= 0) return; setHistoryIndex(i => { const n = i - 1; canvasRef.current!.getContext("2d")!.putImageData(history[n], 0, 0); return n; }); };
+  const redo = () => { if (historyIndex >= history.length - 1) return; setHistoryIndex(i => { const n = i + 1; canvasRef.current!.getContext("2d")!.putImageData(history[n], 0, 0); return n; }); };
+  const clear = () => { const c = canvasRef.current!; const ctx = c.getContext("2d")!; ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, c.width, c.height); saveState(); };
+
+  const startDraw = (e: any) => {
+    const pos = getPos(e); if (tool === "text") { setTextPos(pos); return; }
+    setIsDrawing(true); lastPos.current = pos; startPos.current = pos;
+    const ctx = canvasRef.current!.getContext("2d")!; ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
+  };
+
+  const draw = (e: any) => {
+    if (!isDrawing) return; const ctx = canvasRef.current!.getContext("2d")!; const pos = getPos(e);
+    ctx.lineWidth = size; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    if (tool === "pen") { ctx.strokeStyle = color; ctx.globalCompositeOperation = "source-over"; ctx.lineTo(pos.x, pos.y); ctx.stroke(); lastPos.current = pos; }
+    else if (tool === "eraser") { ctx.globalCompositeOperation = "destination-out"; ctx.lineWidth = size * 5; ctx.lineTo(pos.x, pos.y); ctx.stroke(); lastPos.current = pos; }
+  };
+
+  const endDraw = (e: any) => {
+    if (!isDrawing) return; const ctx = canvasRef.current!.getContext("2d")!; const pos = getPos(e);
+    if ((tool === "line" || tool === "rect") && startPos.current) {
+      ctx.putImageData(history[historyIndex], 0, 0); ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = size; ctx.globalCompositeOperation = "source-over";
+      if (tool === "line") { ctx.moveTo(startPos.current.x, startPos.current.y); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }
+      else { ctx.strokeRect(startPos.current.x, startPos.current.y, pos.x - startPos.current.x, pos.y - startPos.current.y); }
+    }
+    setIsDrawing(false); saveState();
+  };
+
+  const addText = () => {
+    if (!textPos || !textInput) return; const ctx = canvasRef.current!.getContext("2d")!;
+    ctx.font = `bold ${size * 6}px Inter, sans-serif`; ctx.fillStyle = color; ctx.fillText(textInput, textPos.x, textPos.y);
+    setTextInput(""); setTextPos(null); saveState();
+  };
+
+  const TOOLS_LIST = [
+    { id: "pen", icon: <PenTool size={18} />, label: "Graphite" },
+    { id: "eraser", icon: <Eraser size={18} />, label: "Purge" },
+    { id: "line", icon: <ChevronRight size={18} className="rotate-45" />, label: "Vector" },
+    { id: "rect", icon: <Square size={18} />, label: "Bound" },
+    { id: "text", icon: <Type size={18} />, label: "Symbol" },
+  ];
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-6 animate-fade-in pb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h2 className="text-3xl font-bold font-serif text-ink mb-2">Cognitive Canvas</h2>
+          <p className="text-sm text-ink3 font-medium">Collaborative visual reasoning for complex syllabus mapping</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+         <Card className="p-3 bg-surface border-2 border-border2 shadow-xl flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-2 p-1 bg-surface2 rounded-2xl border border-border2">
+               {TOOLS_LIST.map(t => (
+                 <button key={t.id} onClick={() => setTool(t.id as any)} className={clsx("w-11 h-11 rounded-xl flex items-center justify-center transition-all", tool === t.id ? 'bg-primary text-white shadow-lg scale-110' : 'text-ink2 hover:bg-surface hover:text-primary')}>
+                    {t.icon}
+                 </button>
+               ))}
+            </div>
+
+            <div className="h-10 w-px bg-border2 hidden lg:block" />
+
+            <div className="flex items-center gap-2 p-1 bg-surface2 rounded-2xl border border-border2">
+               {COLORS.map(c => (
+                 <button key={c} onClick={() => setColor(c)} className={clsx("w-8 h-8 rounded-full border-2 transition-all", color === c ? 'border-primary scale-125 shadow-lg' : 'border-transparent hover:scale-110')} style={{ backgroundColor: c }} />
+               ))}
+            </div>
+
+            <div className="h-10 w-px bg-border2 hidden lg:block" />
+
+            <div className="flex items-center gap-4 px-4 py-2 bg-surface2 rounded-2xl border border-border2">
+               <Palette size={14} className="text-ink3" />
+               <input type="range" min={1} max={20} value={size} onChange={e => setSize(+e.target.value)} className="w-32 accent-primary" />
+               <span className="text-[10px] font-black text-ink w-4">{size}</span>
+            </div>
+
+            <div className="flex items-center gap-2 ml-auto">
+               <button onClick={undo} className="p-2.5 rounded-xl bg-surface2 border border-border2 text-ink2 hover:text-primary transition-all"><Undo size={16} /></button>
+               <button onClick={redo} className="p-2.5 rounded-xl bg-surface2 border border-border2 text-ink2 hover:text-primary transition-all"><Redo size={16} /></button>
+               <button onClick={clear} className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all"><Trash size={16} /></button>
+               <Button onClick={() => { const a = document.createElement("a"); a.href = canvasRef.current!.toDataURL(); a.download = "canvas-export.png"; a.click(); }} className="gap-2 px-6 shadow-lg"><Download size={16} /> Export Blueprint</Button>
+            </div>
+         </Card>
+
+         {textPos && (
+           <div className="flex gap-4 animate-in zoom-in-95 duration-300">
+              <input 
+                className="input h-14 text-lg font-bold shadow-2xl flex-1 max-w-md border-primary ring-8 ring-primary/5" 
+                placeholder="Insert academic symbol..." 
+                value={textInput} 
+                onChange={e => setTextInput(e.target.value)} 
+                onKeyDown={e => e.key === 'Enter' && addText()} 
+                autoFocus 
+              />
+              <Button size="lg" onClick={addText} className="px-8 shadow-2xl">Commit Symbol</Button>
+              <Button variant="ghost" onClick={() => setTextPos(null)}>Abort</Button>
+           </div>
+         )}
+
+         <Card className="p-0 overflow-hidden border-2 border-border2 shadow-2xl bg-white cursor-crosshair">
+            <canvas
+              ref={canvasRef}
+              className="w-full h-[650px] touch-none"
+              onMouseDown={startDraw}
+              onMouseMove={draw}
+              onMouseUp={endDraw}
+              onMouseLeave={() => isDrawing && endDraw({})}
+            />
+         </Card>
+         <p className="text-[9px] font-black text-ink3 uppercase tracking-[0.4em] text-center opacity-40">System Logic: End-to-end vector reasoning enabled</p>
+      </div>
+    </div>
+  );
+};

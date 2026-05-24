@@ -1,0 +1,1046 @@
+import { useNavigate } from "@tanstack/react-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  ProgressBar,
+  Spinner,
+  StatCard,
+  Input,
+  TypingIndicator
+} from "../components/ui";
+import {
+  essayApi,
+  examApi,
+  focusApi,
+  learningPathApi,
+  voiceApi,
+} from "../services/apiServices";
+import { useAuthStore } from "../store/authStore";
+import type {
+  EssayGrade,
+  ExamQuestion,
+  ExamSession,
+  FocusSession,
+  LearningPath,
+} from "../types";
+import { clsx } from "clsx";
+import { 
+  ClipboardList, 
+  Timer, 
+  Target, 
+  CheckCircle2, 
+  XCircle, 
+  Sparkles, 
+  Plus, 
+  History, 
+  BrainCircuit, 
+  Map, 
+  Clock, 
+  ArrowRight, 
+  ChevronRight, 
+  Play, 
+  Pause, 
+  RotateCcw, 
+  AlertTriangle,
+  PenTool,
+  Mic,
+  MicOff,
+  Volume2,
+  FileText,
+  Code,
+  Terminal,
+  Eraser,
+  Square,
+  Type,
+  Undo,
+  Redo,
+  Download,
+  Trash,
+  Palette
+} from "lucide-react";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 1. AI EXAM SIMULATOR
+// ═══════════════════════════════════════════════════════════════════════════════
+export const ExamSimulatorPage: React.FC = () => {
+  const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const [view, setView] = useState<"list" | "generate" | "taking" | "results">("list");
+  const [exams, setExams] = useState<ExamSession[]>([]);
+  const [activeExam, setActiveExam] = useState<ExamSession | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [qIndex, setQIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [results, setResults] = useState<any>(null);
+  const timerRef = useRef<any>(null);
+  
+  const [genForm, setGenForm] = useState({
+    subject: "",
+    year: new Date().getFullYear().toString(),
+    paper: "Paper 1",
+    totalMarks: 100,
+    questionTypes: ["mcq", "short_answer", "essay"] as string[],
+  });
+
+  useEffect(() => {
+    examApi
+      .getAll()
+      .then((r) => setExams((r.data as any).data?.exams || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (view === "taking" && activeExam && timeLeft > 0) {
+      timerRef.current = setInterval(() => {
+        setTimeLeft((t) => {
+          if (t <= 1) {
+            clearInterval(timerRef.current);
+            handleSubmit();
+            return 0;
+          }
+          return t - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [view, activeExam]);
+
+  const generateExam = async () => {
+    if (!genForm.subject) { toast.error("Subject domain required"); return; }
+    setGenerating(true);
+    try {
+      const r = await examApi.generate(genForm);
+      const exam = (r.data as any).data?.exam;
+      setExams((prev) => [exam, ...prev]);
+      toast.success("AI Exam logic synthesized.");
+      setView("list");
+    } catch {
+      toast.error("Protocol failed. Verify AI credits.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const startExam = async (exam: ExamSession) => {
+    try {
+      const r = await examApi.start(exam._id);
+      const started = (r.data as any).data?.exam || exam;
+      setActiveExam(started);
+      setAnswers({});
+      setQIndex(0);
+      setTimeLeft((started.timeLimitMinutes || 180) * 60);
+      setView("taking");
+    } catch {
+      toast.error("Initialization failed");
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!activeExam) return;
+    clearInterval(timerRef.current);
+    const answerList = activeExam.questions.map(q => ({
+      questionId: q._id,
+      questionText: q.text,
+      type: q.type,
+      userAnswer: answers[q._id] || "",
+      timeTaken: 0,
+    }));
+    try {
+      const r = await examApi.submit(activeExam._id, answerList);
+      setResults((r.data as any).data);
+      setExams(prev => prev.map(e => e._id === activeExam._id ? { ...e, status: "graded", percentage: (r.data as any).data?.exam?.percentage } : e));
+      setView("results");
+    } catch {
+      toast.error("Submission uplink failed");
+    }
+  };
+
+  const formatTime = (s: number) => {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+  };
+
+  const gradeColor: Record<string, string> = {
+    A: "var(--color-secondary)",
+    B: "var(--color-primary)",
+    C: "var(--color-secondary-light)",
+    D: "var(--color-accent)",
+    E: "var(--color-accent)",
+    U: "var(--danger)",
+  };
+
+  if (loading) return <div className="flex items-center justify-center min-h-[70vh]"><Spinner size={40} className="text-primary" /></div>;
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-12">
+      {view !== "taking" && view !== "results" && (
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <h2 className="text-3xl font-bold font-serif text-ink mb-2">AI Exam Simulator</h2>
+            <p className="text-sm text-ink3 font-medium">Full timed sessions in official ZIMSEC format</p>
+          </div>
+          <Button onClick={() => setView("generate")} className="gap-2 shadow-lg">
+            <Plus size={18} /> Initialize New Exam
+          </Button>
+        </div>
+      )}
+
+      {/* VIEW: LIST */}
+      {view === "list" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {exams.length === 0 ? (
+            <div className="col-span-full">
+              <EmptyState 
+                icon={<ClipboardList size={40} />} 
+                title="No simulated exams" 
+                description="Generate a custom exam based on your curriculum level and subjects."
+                action={<Button onClick={() => setView("generate")}>Generate First Exam</Button>}
+              />
+            </div>
+          ) : (
+            exams.map((e) => (
+              <Card key={e._id} hoverable className="group flex flex-col h-full border-border2">
+                <div className="flex justify-between items-start mb-6">
+                  <div className="p-3 rounded-2xl bg-primary/5 text-primary group-hover:scale-110 transition-transform">
+                    <History size={20} />
+                  </div>
+                  <Badge variant={e.status === 'graded' ? 'teal' : e.status === 'in_progress' ? 'amber' : 'blue'}>
+                    {e.status.replace('_', ' ')}
+                  </Badge>
+                </div>
+                
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-ink mb-1 group-hover:text-primary transition-colors line-clamp-1">{e.title}</h3>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 mb-6">
+                    <p className="text-[10px] font-black text-ink3 uppercase tracking-widest flex items-center gap-1.5"><Target size={12} /> {e.subject}</p>
+                    <p className="text-[10px] font-black text-ink3 uppercase tracking-widest flex items-center gap-1.5"><Timer size={12} /> {e.timeLimitMinutes}m</p>
+                  </div>
+
+                  {e.status === "graded" && e.percentage !== undefined && (
+                    <div className="space-y-3 p-4 bg-bg rounded-2xl border border-border2">
+                      <div className="flex justify-between items-end">
+                        <span className="text-[10px] font-black text-ink3 uppercase tracking-widest">Achieved Grade</span>
+                        <span className="text-xl font-black" style={{ color: gradeColor[e.grade || 'U'] }}>{e.grade}</span>
+                      </div>
+                      <ProgressBar value={e.percentage} className="!gap-0" color={gradeColor[e.grade || 'U']} />
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-8 flex gap-2">
+                  {e.status !== "graded" ? (
+                    <Button className="flex-1 shadow-md" onClick={() => startExam(e)}>
+                      {e.status === "in_progress" ? "Resume Protocol" : "Launch Exam"}
+                    </Button>
+                  ) : (
+                    <Button variant="outline" className="flex-1" onClick={() => { setActiveExam(e); setResults({ exam: e }); setView("results"); }}>
+                      Review Analytics
+                    </Button>
+                  )}
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* VIEW: GENERATE */}
+      {view === "generate" && (
+        <div className="max-w-2xl mx-auto">
+          <Card className="relative overflow-hidden border-border2">
+            <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+              <Sparkles size={160} />
+            </div>
+            
+            <div className="relative z-10">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center shadow-2xl">
+                  <BrainCircuit size={28} />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black font-serif text-ink tracking-tight">Synthesize Exam</h3>
+                  <p className="text-[10px] text-primary font-bold uppercase tracking-[0.2em]">ZIMSEC Core Calibration</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-black text-ink3 uppercase tracking-widest mb-2 block">Syllabus Domain</label>
+                  <Input 
+                    placeholder="e.g. Advanced Level Physics" 
+                    value={genForm.subject} 
+                    onChange={(e) => setGenForm({...genForm, subject: e.target.value})} 
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-ink3 uppercase tracking-widest px-1">Curriculum Year</label>
+                    <Input value={genForm.year} onChange={(e) => setGenForm({...genForm, year: e.target.value})} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-ink3 uppercase tracking-widest px-1">Examination Paper</label>
+                    <select 
+                      className="input text-sm font-bold bg-bg" 
+                      value={genForm.paper} 
+                      onChange={(e) => setGenForm({...genForm, paper: e.target.value})}
+                    >
+                      <option>Paper 1</option><option>Paper 2</option><option>Paper 3</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-[10px] font-black text-ink3 uppercase tracking-widest px-1">Mark Capacity</label>
+                    <span className="text-sm font-bold text-primary">{genForm.totalMarks} Points</span>
+                  </div>
+                  <input
+                    type="range" min={40} max={200} step={10}
+                    className="w-full h-2 bg-surface2 rounded-lg appearance-none cursor-pointer accent-primary"
+                    value={genForm.totalMarks}
+                    onChange={(e) => setGenForm({...genForm, totalMarks: +e.target.value})}
+                  />
+                </div>
+
+                <div className="pt-8 border-t border-border2 flex flex-col sm:flex-row gap-4">
+                  <Button size="lg" className="flex-1 shadow-2xl h-14 text-base gap-3" onClick={generateExam} loading={generating}>
+                    {!generating && <Zap size={20} />} Execute Generation
+                  </Button>
+                  <Button variant="ghost" size="lg" className="h-14" onClick={() => setView("list")}>Cancel</Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* VIEW: TAKING */}
+      {view === "taking" && activeExam && currentQ && (
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* HUD Overlay */}
+          <Card className="sticky top-20 z-30 p-4 border-primary/20 backdrop-blur-md bg-surface/90 shadow-2xl flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shadow-inner">
+                  <ClipboardList size={20} />
+                </div>
+                <div className="hidden sm:block">
+                  <p className="text-[10px] font-black text-ink3 uppercase tracking-widest mb-0.5">Exam Session</p>
+                  <p className="text-xs font-bold text-ink truncate max-w-[200px]">{activeExam.title}</p>
+                </div>
+              </div>
+              <div className="h-8 w-px bg-border2 hidden sm:block" />
+              <div className="flex flex-col">
+                <p className="text-[10px] font-black text-ink3 uppercase tracking-widest mb-0.5">Index</p>
+                <p className="text-xs font-bold text-ink">Q {qIndex + 1} of {activeExam.questions.length}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+               <div className={clsx(
+                 "flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-colors",
+                 timeLeft < 300 ? "border-red-500 bg-red-500/10 text-red-500 animate-pulse" : "border-border2 bg-bg text-ink"
+               )}>
+                 <Timer size={18} />
+                 <span className="text-lg font-black font-mono tracking-tighter">{formatTime(timeLeft)}</span>
+               </div>
+               <Button variant="danger" size="sm" className="hidden sm:flex" onClick={handleSubmit}>Terminate & Submit</Button>
+            </div>
+          </Card>
+
+          <ProgressBar value={((activeExam.timeLimitMinutes * 60 - timeLeft) / (activeExam.timeLimitMinutes * 60)) * 100} className="!gap-1 h-1.5" color={timeLeft < 300 ? 'var(--danger)' : 'var(--color-primary)'} />
+
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
+            <div className="space-y-6">
+               <Card className="p-10 shadow-soft">
+                  <div className="flex justify-between items-center mb-10">
+                    <Badge variant={currentQ.type === 'essay' ? 'purple' : currentQ.type === 'mcq' ? 'blue' : 'amber'} className="px-4 py-1.5 text-[10px] font-black tracking-widest">
+                      {currentQ.type.toUpperCase().replace('_', ' ')}
+                    </Badge>
+                    <span className="text-sm font-black text-ink3 uppercase tracking-[0.2em]">{currentQ.marks} MARKS</span>
+                  </div>
+
+                  <p className="text-2xl font-bold font-serif text-ink leading-relaxed mb-12">
+                    {currentQ.text}
+                  </p>
+
+                  <div className="space-y-4">
+                    {currentQ.type === 'mcq' ? (
+                      <div className="grid grid-cols-1 gap-3">
+                        {currentQ.options?.map((opt, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setAnswers({...answers, [currentQ._id]: opt})}
+                            className={clsx(
+                              "w-full text-left p-6 rounded-2xl border-2 transition-all duration-300 font-bold text-sm flex items-center justify-between group",
+                              answers[currentQ._id] === opt ? "bg-primary/10 border-primary text-primary shadow-xl" : "bg-bg border-border2 text-ink2 hover:border-primary/40 hover:bg-surface2"
+                            )}
+                          >
+                            <span>{opt}</span>
+                            <div className={clsx("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all", answers[currentQ._id] === opt ? "bg-primary border-primary text-white" : "border-border2")}>
+                              {answers[currentQ._id] === opt && <CheckCircle2 size={14} />}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <textarea
+                        className="w-full bg-bg border-2 border-border2 rounded-2xl p-8 text-lg font-medium focus:ring-8 focus:ring-primary/5 focus:border-primary outline-none transition-all shadow-inner min-h-[350px] leading-loose"
+                        placeholder={currentQ.type === 'essay' ? "Synthesize your academic response here..." : "Provide precise analytical response..."}
+                        value={answers[currentQ._id] || ""}
+                        onChange={(e) => setAnswers({...answers, [currentQ._id]: e.target.value})}
+                      />
+                    )}
+                  </div>
+
+                  <div className="mt-12 pt-8 border-t border-border2 flex justify-between">
+                    <Button variant="ghost" disabled={qIndex === 0} onClick={() => setQIndex(qIndex - 1)} className="gap-2">
+                      <ChevronRight size={18} className="rotate-180" /> Previous Question
+                    </Button>
+                    {qIndex < activeExam.questions.length - 1 ? (
+                      <Button onClick={() => setQIndex(qIndex + 1)} className="gap-2 px-8">
+                        Next Challenge <ChevronRight size={18} />
+                      </Button>
+                    ) : (
+                      <Button variant="secondary" onClick={handleSubmit} className="px-10 shadow-2xl">Finalize Exam Protocol</Button>
+                    )}
+                  </div>
+               </Card>
+            </div>
+
+            {/* Navigation Grid Sidebar */}
+            <aside className="space-y-6 sticky top-44">
+               <Card className="p-6">
+                  <h4 className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em] mb-6 border-b border-border2 pb-4">Navigator Matrix</h4>
+                  <div className="grid grid-cols-5 gap-2">
+                    {activeExam.questions.map((q, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setQIndex(i)}
+                        className={clsx(
+                          "w-10 h-10 rounded-xl text-xs font-black transition-all flex items-center justify-center border-2",
+                          i === qIndex ? "bg-primary text-white border-primary shadow-lg scale-110" : 
+                          answers[q._id] ? "bg-secondary/10 text-secondary border-secondary/20" : "bg-bg text-ink3 border-border2 hover:border-primary/30"
+                        )}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+               </Card>
+               
+               <Card className="bg-warn/5 border-warn/10 p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <AlertTriangle size={18} className="text-warn" />
+                    <h4 className="text-[10px] font-black text-warn uppercase tracking-widest">Protocol Warning</h4>
+                  </div>
+                  <p className="text-[11px] font-bold text-ink2 leading-relaxed">
+                    Exiting this interface will result in a suspension of the timer. Frequent interruptions may degrade AI diagnostic accuracy.
+                  </p>
+               </Card>
+            </aside>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW: RESULTS */}
+      {view === "results" && results?.exam && (
+        <div className="max-w-4xl mx-auto space-y-6 animate-in zoom-in-95 duration-500">
+           <Card className="p-12 text-center shadow-2xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] to-transparent" />
+              
+              <div className="relative z-10">
+                <div className="w-32 h-32 rounded-[2.5rem] bg-surface2 border border-border2 mx-auto flex items-center justify-center mb-8 shadow-inner">
+                   <div className="text-6xl font-black font-serif" style={{ color: gradeColor[results.exam.grade] }}>{results.exam.grade}</div>
+                </div>
+                
+                <h3 className="text-5xl font-black font-serif text-ink mb-2 tracking-tight">{results.exam.percentage}%</h3>
+                <p className="text-xs font-black text-ink3 uppercase tracking-[0.3em] mb-12">Grade Certification Issued</p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto mb-12">
+                   <div className="p-6 rounded-3xl bg-bg border border-border2 shadow-soft">
+                      <p className="text-[10px] font-black text-ink3 uppercase tracking-widest mb-1">Score Matrix</p>
+                      <p className="text-2xl font-bold text-ink">{results.exam.earnedMarks} / {results.exam.totalMarks}</p>
+                   </div>
+                   <div className="p-6 rounded-3xl bg-bg border border-border2 shadow-soft">
+                      <p className="text-[10px] font-black text-ink3 uppercase tracking-widest mb-1">XP Relayed</p>
+                      <p className="text-2xl font-bold text-primary">+{results.xpEarned || 250}</p>
+                   </div>
+                   <div className="p-6 rounded-3xl bg-bg border border-border2 shadow-soft">
+                      <p className="text-[10px] font-black text-ink3 uppercase tracking-widest mb-1">Accuracy</p>
+                      <p className="text-2xl font-bold text-secondary">High</p>
+                   </div>
+                </div>
+              </div>
+           </Card>
+
+           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {results.exam.aiFeedback && (
+                <Card className="bg-primary/[0.02] border-primary/10 p-10">
+                   <div className="flex items-center gap-3 mb-6">
+                     <div className="p-2 rounded-xl bg-primary text-white shadow-lg"><BrainCircuit size={18} /></div>
+                     <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">AI Examiner Feedback</h4>
+                   </div>
+                   <p className="text-lg font-serif italic text-ink leading-relaxed">"{results.exam.aiFeedback}"</p>
+                </Card>
+              )}
+
+              {results.exam.weakTopics?.length > 0 && (
+                <Card className="p-10">
+                   <div className="flex items-center gap-3 mb-8">
+                     <div className="p-2 rounded-xl bg-accent/10 text-accent"><Target size={18} /></div>
+                     <h4 className="text-[10px] font-black text-accent uppercase tracking-[0.2em]">Deficit Identification</h4>
+                   </div>
+                   <div className="flex flex-wrap gap-2">
+                     {results.exam.weakTopics.map((t: string) => (
+                       <Badge key={t} variant="amber" className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-warn/20">{t}</Badge>
+                     ))}
+                   </div>
+                   <Button variant="ghost" className="w-full mt-10 border-t border-border2 rounded-none pt-6 text-primary font-black uppercase tracking-widest text-[10px] gap-2">
+                     Synthesize Study Path <ArrowRight size={14} />
+                   </Button>
+                </Card>
+              )}
+           </div>
+
+           <div className="flex justify-center gap-4 pt-8">
+              <Button size="lg" className="px-12 shadow-2xl h-14" onClick={() => setView("list")}>Archive Result</Button>
+              <Button variant="outline" size="lg" className="px-12 h-14" onClick={() => setView("generate")}>Initialize New Session</Button>
+           </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 2. LEARNING PATH GENERATOR
+// ═══════════════════════════════════════════════════════════════════════════════
+export const LearningPathPage: React.FC = () => {
+  const { user } = useAuthStore();
+  const [paths, setPaths] = useState<LearningPath[]>([]);
+  const [activePath, setActivePath] = useState<LearningPath | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    subject: "",
+    targetExamDate: "",
+    hoursPerDay: 2,
+  });
+
+  useEffect(() => {
+    learningPathApi
+      .getAll()
+      .then((r) => setPaths((r.data as any).data?.paths || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const generate = async () => {
+    if (!form.subject) { toast.error("Subject specification required"); return; }
+    setGenerating(true);
+    try {
+      const r = await learningPathApi.generate(form);
+      const path = (r.data as any).data?.path;
+      setPaths((prev) => [path, ...prev.filter((p) => p.subject !== form.subject)]);
+      setActivePath(path);
+      setShowForm(false);
+      toast.success("Academic roadmap synthesized.");
+    } catch {
+      toast.error("Roadmap generation failed");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const completeMilestone = async (pathId: string, milestoneId: string) => {
+    try {
+      const r = await learningPathApi.completeMilestone(pathId, milestoneId);
+      const updated = (r.data as any).data?.path;
+      setPaths((prev) => prev.map((p) => (p._id === pathId ? updated : p)));
+      if (activePath?._id === pathId) setActivePath(updated);
+      toast.success("Objective secured. +50 XP");
+    } catch {
+      toast.error("Update failed");
+    }
+  };
+
+  if (loading) return <div className="flex items-center justify-center min-h-[70vh]"><Spinner size={40} className="text-primary" /></div>;
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h2 className="text-3xl font-bold font-serif text-ink mb-2">Academic Roadmap</h2>
+          <p className="text-sm text-ink3 font-medium">AI-synthesized learning paths toward exam mastery</p>
+        </div>
+        <Button onClick={() => setShowForm(true)} className="gap-2 shadow-lg">
+          <Plus size={18} /> Initialize New Path
+        </Button>
+      </div>
+
+      {showForm && (
+        <div className="max-w-xl mx-auto">
+          <Card className="relative overflow-hidden border-border2 shadow-2xl">
+            <h3 className="text-xl font-bold font-serif text-ink mb-8 flex items-center gap-3">
+              <Map size={24} className="text-primary" />
+              Configure Learning Path
+            </h3>
+            <div className="space-y-6">
+              <div>
+                <label className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em] mb-2 block">Syllabus Subject</label>
+                <Input placeholder="e.g. Organic Chemistry" value={form.subject} onChange={(e) => setForm({...form, subject: e.target.value})} />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em] mb-2 block">Examination Date</label>
+                <input type="date" className="input text-sm font-bold bg-bg" value={form.targetExamDate} onChange={(e) => setForm({...form, targetExamDate: e.target.value})} />
+              </div>
+              <div className="pt-4">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em]">Operational Capacity</label>
+                  <span className="text-sm font-bold text-primary">{form.hoursPerDay} Hours / Day</span>
+                </div>
+                <input type="range" min={1} max={8} className="w-full h-2 bg-surface2 rounded-lg appearance-none cursor-pointer accent-primary" value={form.hoursPerDay} onChange={(e) => setForm({...form, hoursPerDay: +e.target.value})} />
+              </div>
+              <div className="pt-8 flex gap-4">
+                <Button className="flex-1 h-12 shadow-xl" onClick={generate} loading={generating}>Synthesize Path</Button>
+                <Button variant="ghost" className="h-12" onClick={() => setShowForm(false)}>Abort</Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8 items-start">
+        {/* Left: Path Directory */}
+        <aside className="space-y-4 sticky top-24">
+          <h4 className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em] px-2 mb-4">Active Roadmaps</h4>
+          {paths.length === 0 ? (
+            <EmptyState icon={<Map size={32} />} title="Pathless" description="No active roadmaps found." />
+          ) : (
+            paths.map((path) => (
+              <Card 
+                key={path._id} 
+                onClick={() => setActivePath(path)}
+                className={clsx(
+                  "p-5 cursor-pointer transition-all duration-300 group",
+                  activePath?._id === path._id ? "ring-2 ring-primary bg-primary/[0.02] shadow-xl" : "hover:border-primary/30"
+                )}
+              >
+                <h4 className="font-bold text-ink mb-1 group-hover:text-primary transition-colors">{path.subject}</h4>
+                <p className="text-[10px] font-black text-ink3 uppercase tracking-widest mb-4">{path.milestones.length} Objectives · {path.totalEstimatedHours}H</p>
+                <ProgressBar value={path.completionPercentage} className="!gap-1" color="var(--color-primary)" />
+              </Card>
+            ))
+          )}
+        </aside>
+
+        {/* Right: Active Path Execution */}
+        <main>
+          {activePath ? (
+            <div className="space-y-10 animate-in slide-in-from-right-4 duration-500">
+               <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-border2 pb-8">
+                  <div>
+                    <h3 className="text-2xl font-black font-serif text-ink tracking-tight mb-2">{activePath.title}</h3>
+                    <p className="text-sm font-medium text-ink2 max-w-xl leading-relaxed">{activePath.description}</p>
+                  </div>
+                  <div className="flex gap-4">
+                     <div className="text-center p-3 px-6 rounded-2xl bg-surface border border-border2 shadow-soft">
+                        <p className="text-[9px] font-black text-ink3 uppercase tracking-[0.15em] mb-1">Status</p>
+                        <p className="text-xl font-bold text-primary">{activePath.completionPercentage}%</p>
+                     </div>
+                  </div>
+               </section>
+
+               <div className="space-y-4">
+                  {activePath.milestones.map((m, i) => {
+                    const isCurrent = i === activePath.currentMilestoneIndex;
+                    return (
+                      <div key={m._id} className="flex gap-6 group relative">
+                        {/* Timeline Logic */}
+                        <div className="flex flex-col items-center shrink-0">
+                           <div className={clsx(
+                             "w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-black transition-all duration-500 shadow-lg relative z-10",
+                             m.isCompleted ? "bg-secondary text-white" : 
+                             isCurrent ? "bg-primary text-white scale-110 ring-4 ring-primary/10" : "bg-surface2 text-ink3"
+                           )}>
+                             {m.isCompleted ? <CheckCircle2 size={20} /> : m.order}
+                           </div>
+                           {i < activePath.milestones.length - 1 && (
+                             <div className={clsx(
+                               "w-1 flex-1 my-2 rounded-full transition-colors duration-700",
+                               m.isCompleted ? "bg-secondary" : "bg-border2"
+                             )} />
+                           )}
+                        </div>
+
+                        <Card className={clsx(
+                          "flex-1 p-8 transition-all duration-500 relative overflow-hidden",
+                          isCurrent && !m.isCompleted ? "border-primary/40 shadow-2xl bg-primary/[0.01]" : "opacity-80"
+                        )}>
+                           <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-6">
+                              <div>
+                                <h4 className="text-lg font-bold text-ink mb-1">{m.title}</h4>
+                                <div className="flex items-center gap-4 text-[10px] font-black text-ink3 uppercase tracking-widest">
+                                  <span className="flex items-center gap-1.5"><Clock size={12} /> {m.estimatedHours}H Workload</span>
+                                  <span>•</span>
+                                  <span className="flex items-center gap-1.5"><Target size={12} /> {m.masteryRequired}% Proficiency</span>
+                                </div>
+                              </div>
+                              {isCurrent && !m.isCompleted && (
+                                <Button size="sm" className="shadow-lg h-10 px-6 gap-2" onClick={() => completeMilestone(activePath._id, m._id)}>
+                                  Mark Objective Secured <ChevronRight size={14} />
+                                </Button>
+                              )}
+                              {m.isCompleted && <Badge variant="teal" className="font-black px-4 py-1.5 rounded-lg shadow-inner">Secured</Badge>}
+                           </div>
+                           
+                           <p className="text-sm font-medium text-ink2 leading-relaxed mb-6 italic">{m.description}</p>
+                           
+                           {m.resources?.length > 0 && (
+                             <div className="flex flex-wrap gap-2">
+                               {m.resources.map((r, ri) => (
+                                 <Badge key={ri} variant="blue" className="bg-primary/5 text-primary border border-primary/10 lowercase font-bold tracking-tight">#{r.description.replace(/\s+/g, '')}</Badge>
+                               ))}
+                             </div>
+                           )}
+                           
+                           {isCurrent && !m.isCompleted && <div className="absolute right-0 top-0 w-24 h-24 bg-primary/[0.03] rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />}
+                        </Card>
+                      </div>
+                    );
+                  })}
+               </div>
+            </div>
+          ) : (
+            <EmptyState icon={<BrainCircuit size={48} />} title="Awaiting Command" description="Select an operational roadmap from the directory to begin execution." />
+          )}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 3. POMODORO FOCUS MODE
+// ═══════════════════════════════════════════════════════════════════════════════
+type FocusPhase = "idle" | "work" | "break" | "long_break" | "reflection";
+
+export const FocusModePage: React.FC = () => {
+  const { user } = useAuthStore();
+  const [phase, setPhase] = useState<FocusPhase>("idle");
+  const [session, setSession] = useState<FocusSession | null>(null);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [pomodorosThisRound, setPomodorosThisRound] = useState(0);
+  const [history, setHistory] = useState<any[]>([]);
+  const [historyStats, setHistoryStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [aiFeedback, setAiFeedback] = useState("");
+  const [reflection, setReflection] = useState({ accomplishments: "", obstacles: "", rating: 5 });
+  const timerRef = useRef<any>(null);
+  
+  const [form, setForm] = useState({
+    subject: "",
+    topic: "",
+    goal: "",
+    workMinutes: 25,
+    breakMinutes: 5,
+  });
+
+  useEffect(() => {
+    focusApi
+      .getHistory()
+      .then((r) => {
+        setHistory((r.data as any).data?.sessions || []);
+        setHistoryStats((r.data as any).data?.stats || {});
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const tick = useCallback(() => {
+    setTimeLeft((t) => {
+      if (t <= 1) {
+        clearInterval(timerRef.current);
+        phaseComplete();
+        return 0;
+      }
+      return t - 1;
+    });
+  }, [phase, session, pomodorosThisRound]);
+
+  useEffect(() => {
+    if (phase === "work" || phase === "break" || phase === "long_break") {
+      timerRef.current = setInterval(tick, 1000);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [phase, tick]);
+
+  const phaseComplete = async () => {
+    if (phase === "work" && session) {
+      const newCount = pomodorosThisRound + 1;
+      setPomodorosThisRound(newCount);
+      await focusApi.pomodoroComplete(session._id, session.workMinutes);
+      toast.success(`Module ${newCount} Secured.`);
+      const isLongBreak = newCount % 4 === 0;
+      setTimeLeft(isLongBreak ? 15 * 60 : session.breakMinutes * 60);
+      setPhase(isLongBreak ? "long_break" : "break");
+    } else if (phase === "break" || phase === "long_break") {
+      if (session) await focusApi.breakComplete(session._id);
+      setTimeLeft(form.workMinutes * 60);
+      setPhase("work");
+    }
+  };
+
+  const startSession = async () => {
+    try {
+      const r = await focusApi.start(form);
+      const s = (r.data as any).data?.session;
+      setSession(s);
+      setTimeLeft(form.workMinutes * 60);
+      setPomodorosThisRound(0);
+      setPhase("work");
+    } catch {
+      toast.error("Initialization failure");
+    }
+  };
+
+  const logDistraction = async () => {
+    if (!session) return;
+    await focusApi.logDistraction(session._id);
+    toast("Focus Compromised: Distraction logged", { icon: "⚠️" });
+  };
+
+  const endSession = (abandoned = false) => {
+    clearInterval(timerRef.current);
+    setPhase("reflection");
+    if (abandoned) toast("Session Aborted Early", { icon: "⚠️" });
+  };
+
+  const submitReflection = async () => {
+    if (!session) return;
+    try {
+      const r = await focusApi.complete(session._id, { ...reflection, abandoned: phase !== "reflection" });
+      const { feedback, focusScore, xpEarned } = (r.data as any).data;
+      setAiFeedback(feedback);
+      toast.success(`Protocol Finalized. Score: ${focusScore}/100 · +${xpEarned} XP`);
+      setHistory((prev) => [(r.data as any).data.session, ...prev]);
+      setSession(null); setPhase("idle"); setPomodorosThisRound(0);
+    } catch {
+      toast.error("Telemetry upload failed");
+    }
+  };
+
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+  };
+
+  const phaseConfig = {
+    work: { color: "var(--color-primary)", label: "Deep Work Phase", badge: "blue" },
+    break: { color: "var(--color-secondary)", label: "Neural Recovery", badge: "teal" },
+    long_break: { color: "var(--color-secondary-light)", label: "System Restoration", badge: "teal" },
+    idle: { color: "var(--color-text-secondary)", label: "Awaiting Command", badge: "blue" },
+    reflection: { color: "var(--color-accent)", label: "Analytical Review", badge: "amber" },
+  };
+
+  const currentConfig = phaseConfig[phase];
+  const totalSeconds = phase === 'work' ? form.workMinutes * 60 : phase === 'long_break' ? 15 * 60 : form.breakMinutes * 60;
+  const progress = totalSeconds ? ((totalSeconds - timeLeft) / totalSeconds) * 100 : 0;
+
+  if (loading) return <div className="flex items-center justify-center min-h-[70vh]"><Spinner size={40} className="text-primary" /></div>;
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h2 className="text-3xl font-bold font-serif text-ink mb-2">Deep Focus Labs</h2>
+          <p className="text-sm text-ink3 font-medium">Enhanced Pomodoro protocol with AI concentration diagnostics</p>
+        </div>
+        <div className="flex gap-2">
+           <Badge variant="blue" className="gap-2"><Activity size={12} /> Biometric Sync Simulation</Badge>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-start">
+        {/* Main Interface */}
+        <div className="space-y-6">
+           <Card className="p-12 flex flex-col items-center justify-center text-center shadow-2xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.01] to-transparent pointer-events-none" />
+              
+              <div className="relative z-10 space-y-10 w-full max-w-md">
+                 <div className="space-y-2">
+                    <Badge variant={currentConfig.badge as any} className="font-black px-6 py-2 rounded-full tracking-[0.2em]">{currentConfig.label.toUpperCase()}</Badge>
+                    <p className="text-[10px] font-black text-ink3 uppercase tracking-[0.3em]">{session?.subject || 'SYSTEM READY'}</p>
+                 </div>
+
+                 {/* Stunning Circular Timer */}
+                 <div className="relative w-72 h-72 mx-auto flex items-center justify-center group">
+                    <svg className="absolute inset-0 w-full h-full -rotate-90">
+                      <circle cx="144" cy="144" r="132" fill="none" stroke="var(--surface2)" strokeWidth="12" />
+                      <circle 
+                        cx="144" cy="144" r="132" fill="none" 
+                        stroke={currentConfig.color} strokeWidth="12" strokeLinecap="round"
+                        strokeDasharray={2 * Math.PI * 132}
+                        strokeDashoffset={2 * Math.PI * 132 * (1 - progress / 100)}
+                        className="transition-all duration-1000 ease-linear shadow-lg"
+                      />
+                    </svg>
+                    <div className="text-center space-y-1 relative z-10 transition-transform duration-500 group-hover:scale-110">
+                       <h3 className="text-7xl font-black font-mono tracking-tighter text-ink">{formatTime(timeLeft)}</h3>
+                       {session && <p className="text-xs font-black text-primary uppercase tracking-widest">Module {pomodorosThisRound + 1} ACTIVE</p>}
+                    </div>
+                    {/* Inner pulse effect */}
+                    {phase === 'work' && <div className="absolute w-56 h-56 rounded-full bg-primary/[0.03] animate-ping pointer-events-none" />}
+                 </div>
+
+                 <div className="flex flex-col gap-4">
+                    {phase === "idle" && (
+                      <Button size="lg" className="w-full h-14 rounded-2xl shadow-xl gap-2 text-base" onClick={startSession}>
+                        <Play size={20} /> Initialize Protocol
+                      </Button>
+                    )}
+                    {(phase === "work" || phase === "break" || phase === "long_break") && (
+                      <div className="grid grid-cols-2 gap-4">
+                         {phase === "work" && (
+                           <Button variant="outline" className="h-12 border-2 hover:bg-red-500/5 hover:text-red-500 hover:border-red-500 transition-all gap-2" onClick={logDistraction}>
+                             <AlertTriangle size={18} /> Distraction logged
+                           </Button>
+                         )}
+                         <Button variant="danger" className={clsx("h-12 shadow-lg", phase !== 'work' && 'col-span-2')} onClick={() => endSession(true)}>
+                           Abort Session
+                         </Button>
+                      </div>
+                    )}
+                 </div>
+              </div>
+
+              {phase === "reflection" && (
+                <div className="mt-12 w-full max-w-lg space-y-6 animate-in fade-in duration-700 text-left border-t border-border2 pt-10">
+                   <h3 className="text-xl font-bold font-serif text-ink mb-2">Cognitive Post-Review</h3>
+                   <div className="space-y-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-ink3 uppercase tracking-widest">Achieved Milestones</label>
+                        <textarea 
+                          className="input min-h-[100px] text-sm" 
+                          placeholder="What modules did you complete?" 
+                          value={reflection.accomplishments}
+                          onChange={e => setReflection({...reflection, accomplishments: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-ink3 uppercase tracking-widest">Obstruction Vectors</label>
+                        <textarea 
+                          className="input min-h-[80px] text-sm" 
+                          placeholder="What compromised your focus?" 
+                          value={reflection.obstacles}
+                          onChange={e => setReflection({...reflection, obstacles: e.target.value})}
+                        />
+                      </div>
+                      <div className="pt-2">
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="text-[10px] font-black text-ink3 uppercase tracking-widest">Focus Quality Rating</label>
+                          <span className="text-sm font-bold text-warn">{reflection.rating} / 5</span>
+                        </div>
+                        <input type="range" min={1} max={5} className="w-full accent-warn h-2 bg-surface2 rounded-lg" value={reflection.rating} onChange={e => setReflection({...reflection, rating: +e.target.value})} />
+                      </div>
+                      <Button size="lg" className="w-full shadow-2xl h-14" onClick={submitReflection}>Execute Analysis</Button>
+                   </div>
+                </div>
+              )}
+           </Card>
+
+           {aiFeedback && (
+             <Card className="bg-primary/[0.02] border-primary/20 p-8 shadow-xl animate-in slide-in-from-bottom-4">
+                <div className="flex items-center gap-3 mb-4">
+                   <div className="p-2 rounded-xl bg-primary text-white"><BrainCircuit size={18} /></div>
+                   <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Diagnostic Intelligence Report</h4>
+                </div>
+                <p className="text-base font-serif italic text-ink leading-relaxed">"{aiFeedback}"</p>
+             </Card>
+           )}
+        </div>
+
+        {/* Sidebar Controls */}
+        <aside className="space-y-6">
+           {phase === "idle" && (
+             <Card className="shadow-soft">
+                <h4 className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em] mb-6 border-b border-border2 pb-4">Lab Parameters</h4>
+                <div className="space-y-5">
+                   <div>
+                     <label className="text-[10px] font-black text-ink3 uppercase tracking-widest mb-1.5 block">Target Subject</label>
+                     <Input placeholder="e.g. Pure Mathematics" value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} />
+                   </div>
+                   <div>
+                     <label className="text-[10px] font-black text-ink3 uppercase tracking-widest mb-1.5 block">Mission Goal</label>
+                     <textarea className="input text-xs font-bold min-h-[80px]" placeholder="Specific session objective..." value={form.goal} onChange={e => setForm({...form, goal: e.target.value})} />
+                   </div>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black text-ink3 uppercase">Focus Module</label>
+                        <div className="relative">
+                          <input type="number" className="input pr-12 text-sm font-black" value={form.workMinutes} onChange={e => setForm({...form, workMinutes: +e.target.value})} />
+                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold opacity-30">MIN</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black text-ink3 uppercase">Recovery</label>
+                        <div className="relative">
+                          <input type="number" className="input pr-12 text-sm font-black" value={form.breakMinutes} onChange={e => setForm({...form, breakMinutes: +e.target.value})} />
+                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold opacity-30">MIN</span>
+                        </div>
+                      </div>
+                   </div>
+                </div>
+             </Card>
+           )}
+
+           {historyStats?.totalSessions > 0 && (
+             <Card className="bg-bg-light/50 dark:bg-bg-dark/50 border-dashed border-2">
+                <h4 className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em] mb-6">Historical Metrics</h4>
+                <div className="grid grid-cols-2 gap-3">
+                   {[
+                     { label: "Modules", val: historyStats.totalPomodoros, icon: "🍅", color: "text-red-500" },
+                     { label: "Hours", val: Math.round(historyStats.totalMinutes / 6), icon: "⏱", color: "text-primary" },
+                     { label: "Accuracy", val: `${Math.round(historyStats.avgFocusScore || 0)}%`, icon: "🎯", color: "text-secondary" },
+                     { label: "Sessions", val: historyStats.totalSessions, icon: "📅", color: "text-accent" },
+                   ].map(stat => (
+                     <div key={stat.label} className="p-4 rounded-2xl bg-surface border border-border2 shadow-soft text-center group hover:scale-[1.05] transition-all">
+                        <div className={clsx("text-xl mb-1", stat.color)}>{stat.icon}</div>
+                        <p className="text-xl font-black text-ink tracking-tighter leading-none mb-1">{stat.val}</p>
+                        <p className="text-[9px] font-bold text-ink3 uppercase tracking-widest">{stat.label}</p>
+                     </div>
+                   ))}
+                </div>
+             </Card>
+           )}
+
+           <div className="space-y-2">
+              <h4 className="text-[10px] font-black text-ink3 uppercase tracking-[0.2em] px-2 mb-4 mt-8">Recent Telemetry</h4>
+              {history.slice(0, 4).map(s => (
+                <div key={s._id} className="p-4 rounded-2xl bg-surface2/50 border border-border2 flex justify-between items-center group hover:bg-surface transition-all">
+                   <div>
+                     <p className="text-xs font-bold text-ink mb-0.5">{s.subject || "Open Mission"}</p>
+                     <p className="text-[9px] font-bold text-ink3 uppercase tracking-widest">{s.pomodorosCompleted} Modules Secured</p>
+                   </div>
+                   <Badge variant={s.focusScore > 80 ? 'teal' : 'amber'} className="font-black text-[9px]">{s.focusScore}%</Badge>
+                </div>
+              ))}
+           </div>
+        </aside>
+      </div>
+    </div>
+  );
+};

@@ -1,0 +1,1442 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>DzidzaAI — Platform Presentation</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Calibri, Arial, sans-serif;
+        color: #111827;
+        line-height: 1.45;
+        margin: 40px;
+      }
+      .cover {
+        text-align: center;
+        margin-top: 120px;
+      }
+      .title {
+        font-size: 44px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 8px;
+      }
+      .subtitle {
+        font-size: 18px;
+        color: #374151;
+        margin-bottom: 28px;
+      }
+      .meta {
+        font-size: 14px;
+        color: #6b7280;
+      }
+      h1 {
+        font-size: 22px;
+        color: #0b1220;
+        margin-top: 28px;
+        border-bottom: 1px solid #e6e9ee;
+        padding-bottom: 8px;
+      }
+      h2 {
+        font-size: 18px;
+        color: #0b1220;
+        margin-top: 20px;
+      }
+      h3 {
+        font-size: 15px;
+        color: #0b1220;
+        margin-top: 12px;
+      }
+      p {
+        margin: 8px 0;
+      }
+      .toc {
+        margin: 24px 0 40px 0;
+      }
+      .section {
+        margin-bottom: 18px;
+      }
+      .feature-table,
+      .summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0 20px 0;
+      }
+      .feature-table th,
+      .feature-table td,
+      .summary-table th,
+      .summary-table td {
+        border: 1px solid #e6e9ee;
+        padding: 8px;
+        text-align: left;
+        vertical-align: top;
+      }
+      .lead {
+        font-size: 15px;
+        color: #374151;
+      }
+      .code {
+        font-family: Consolas, monospace;
+        background: #f8fafc;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #eef2f7;
+      }
+      .diagram {
+        font-family: Consolas, monospace;
+        background: #ffffff;
+        padding: 12px;
+        border-left: 4px solid #0ea5a4;
+        margin: 12px 0;
+        white-space: pre-wrap;
+      }
+      ul {
+        margin: 6px 0 6px 18px;
+      }
+      .small {
+        font-size: 12px;
+        color: #6b7280;
+      }
+      .center {
+        text-align: center;
+      }
+      .page-break {
+        page-break-after: always;
+      }
+      table.mini {
+        width: 60%;
+        margin: 6px 0 12px 0;
+      }
+      .footer {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-top: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Cover Page -->
+    <div class="cover">
+      <div class="title">DzidzaAI</div>
+      <div class="subtitle">
+        AI-Powered Personalized Education Platform — Product & Technical Report
+      </div>
+      <div class="meta">
+        Author: [Author Name Placeholder] &nbsp;|&nbsp; Date: May 24, 2026
+        &nbsp;|&nbsp; Version: 1.0
+      </div>
+      <div style="margin-top: 60px; font-size: 13px; color: #475569">
+        Presentation-ready technical & business documentation for investors,
+        academic review, and enterprise adoption.
+      </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Table of Contents -->
+    <h1>Table of Contents</h1>
+    <div class="toc lead">
+      1. Executive Summary<br />
+      2. Platform Overview<br />
+      3. Problem Statement<br />
+      4. Solution Overview<br />
+      5. Platform Features<br />
+      6. Onboarding & Personalization System<br />
+      7. System Architecture<br />
+      8. Technical Stack
+      <br />&nbsp;&nbsp;&nbsp;&nbsp;8.1 Frontend<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;8.2 Backend<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;8.3 AI & Infrastructure<br />
+      9. Database Architecture<br />
+      10. AI System Architecture<br />
+      11. Security Architecture<br />
+      12. UI/UX Design System 13. User Workflows 14. Scalability & Performance
+      15. Future Roadmap 16. Business & Market Value 17. Conclusion 18.
+      Appendices: Summaries & Assessments
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Executive Summary -->
+    <h1>Executive Summary</h1>
+    <div class="section">
+      <p class="lead">
+        DzidzaAI is an AI-first educational platform designed to transform how
+        learners acquire knowledge through highly personalized, conversational
+        tutoring and automated content generation. It addresses core challenges
+        in modern education—access, personalization, engagement, and assessment
+        quality—by combining state-of-the-art AI models, robust backend
+        services, and a modern, accessible frontend experience.
+      </p>
+      <p>
+        <strong>Problem:</strong> Current education systems are constrained by
+        one-size-fits-all instruction, limited access to quality tutors, and
+        inefficient revision and assessment workflows.
+      </p>
+      <p>
+        <strong>Solution:</strong> DzidzaAI delivers individualized learning
+        paths, adaptive tutoring sessions, AI-generated quizzes and flashcards,
+        intelligent study planners, and analytics to guide students and
+        educators.
+      </p>
+      <p>
+        <strong>Target Users:</strong> Primary, secondary, tertiary students,
+        professional certification candidates, educators, and institutions
+        seeking scalable, data-driven learning support.
+      </p>
+      <p>
+        <strong>Vision:</strong> Empower every learner with a personalized AI
+        tutor that scales across curricula and educational contexts while
+        preserving safety, accuracy, and measurable outcomes.
+      </p>
+    </div>
+
+    <h2>Key Outcomes</h2>
+    <ul>
+      <li>
+        Reduced time-to-proficiency through personalized study plans and spaced
+        repetition.
+      </li>
+      <li>
+        Higher engagement via conversational sessions and dynamic content.
+      </li>
+      <li>
+        Administrative insights for educators through analytics and reports.
+      </li>
+      <li>
+        Enterprise-grade security and scalable architecture for institutional
+        adoption.
+      </li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <!-- Platform Overview -->
+    <h1>Platform Overview</h1>
+    <div class="section">
+      <h2>What is DzidzaAI?</h2>
+      <p>
+        DzidzaAI is a SaaS platform that blends conversational AI, content
+        generation, and learning science to deliver adaptive education
+        experiences. Core modules include AI Tutor, Chat, Quiz/Exam/Flashcard
+        Generation, Study Planner, Document Processing, and Analytics.
+      </p>
+
+      <h2>Supported Educational Tiers</h2>
+      <ul>
+        <li>Primary & Secondary School</li>
+        <li>O-Level & A-Level</li>
+        <li>College & University</li>
+        <li>Professional Certifications</li>
+      </ul>
+    </div>
+
+    <h2>Business Model</h2>
+    <p>
+      Hybrid SaaS and B2B licensing: freemium consumer tiers, subscription-based
+      premium plans for students, and institutional licensing for schools and
+      universities. Additional revenue from professional certification prep
+      bundles and API/white-label integrations.
+    </p>
+
+    <div class="page-break"></div>
+
+    <!-- Problem Statement -->
+    <h1>Problem Statement</h1>
+    <div class="section">
+      <p>
+        Modern learners face systemic issues that impede effective learning:
+      </p>
+      <ul>
+        <li>
+          <strong>Lack of Personalized Learning:</strong> Curricula rarely adapt
+          to individual pace, prior knowledge, or learning preferences.
+        </li>
+        <li>
+          <strong>Poor Access to Tutoring:</strong> Quality tutoring is unevenly
+          distributed and costly.
+        </li>
+        <li>
+          <strong>Ineffective Revision Systems:</strong> Students often lack
+          structured, evidence-based revision like spaced repetition.
+        </li>
+        <li>
+          <strong>Lack of Academic Organization:</strong> Many learners struggle
+          with planning, time management, and tracking progress.
+        </li>
+        <li>
+          <strong>Difficulty Generating Study Material:</strong> Preparing
+          targeted quizzes, exams, and flashcards is time-consuming for
+          educators.
+        </li>
+        <li>
+          <strong>Curriculum Mismatch:</strong> Learning materials are
+          frequently out-of-sync with syllabus requirements.
+        </li>
+        <li>
+          <strong>Poor Student Engagement:</strong> Static content and one-way
+          lecture formats lower motivation.
+        </li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Solution Overview -->
+    <h1>Solution Overview</h1>
+    <div class="section">
+      <p>
+        DzidzaAI solves these problems with an integrated set of AI-driven
+        features:
+      </p>
+      <ul>
+        <li>
+          <strong>Conversational AI:</strong> Natural language chat and tutoring
+          sessions to help students ask questions, receive explanations, and
+          iterate on concepts.
+        </li>
+        <li>
+          <strong>AI Tutoring:</strong> Adaptive problem selection and targeted
+          feedback driven by student model and assessment outcomes.
+        </li>
+        <li>
+          <strong>Personalized Learning:</strong> Onboarding and ongoing
+          behavior-based personalization to tailor content and study plans.
+        </li>
+        <li>
+          <strong>AI-Generated Content:</strong> Automatic quizzes, exams,
+          flashcards, and summaries aligned to curriculum inputs.
+        </li>
+        <li>
+          <strong>Study Planning:</strong> Intelligent schedulers and timetables
+          that integrate with personal calendars and retention strategies.
+        </li>
+        <li>
+          <strong>Analytics:</strong> Dashboards for learners and educators with
+          progress metrics, weak-topic detection, and cohort analyses.
+        </li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Platform Features -->
+    <h1>Platform Features — Detailed Breakdown</h1>
+    <p class="lead">
+      Each feature is described with purpose, how it works, frontend and backend
+      responsibilities, AI integration points, and direct user benefits.
+    </p>
+
+    <!-- Feature Table Example -->
+    <table class="feature-table">
+      <tr>
+        <th>Feature</th>
+        <th>Purpose</th>
+        <th>How It Works</th>
+        <th>Frontend</th>
+        <th>Backend</th>
+        <th>AI</th>
+        <th>User Benefits</th>
+      </tr>
+      <tr>
+        <td><strong>AI Tutor</strong></td>
+        <td>Deliver real-time adaptive tutoring sessions.</td>
+        <td>
+          Conversational sessions driven by a student model, curriculum mapping,
+          and dynamic question generation.
+        </td>
+        <td>Chat UI, session controls, hints, feedback, session history.</td>
+        <td>
+          Session management, ephemeral storage, transcript persistence,
+          scoring.
+        </td>
+        <td>
+          LLMs for explanation generation, retrieval-augmented generation (RAG)
+          using vector DB, model-of-student personalization.
+        </td>
+        <td>
+          Personalized help, instant feedback, reduced time-to-understand.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>AI Chat</strong></td>
+        <td>Casual Q&A, study advice, and research assistance.</td>
+        <td>
+          Free-form chat with optional context (documents, past sessions, user
+          profile).
+        </td>
+        <td>Conversational UX, attachments, file upload integration.</td>
+        <td>
+          Message routing, rate-limiting, context fetching, RAG orchestration.
+        </td>
+        <td>OpenAI/Gemini for answers; vector search for document context.</td>
+        <td>On-demand assistance; reduces friction for study queries.</td>
+      </tr>
+      <tr>
+        <td><strong>Flashcards</strong></td>
+        <td>Fast, spaced repetition-based memorization tool.</td>
+        <td>
+          Auto-generated cards from notes/documents or manual input; schedule
+          via SRS algorithm.
+        </td>
+        <td>Card review UI, progress indicators, difficulty tagging.</td>
+        <td>Persistence, spaced repetition scheduling, sync across devices.</td>
+        <td>
+          LLMs summarize concepts into Q/A pairs; suggest distractors for
+          multiple-choice.
+        </td>
+        <td>
+          Improved retention; automated content generation saves instructor
+          time.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Quiz Generator</strong></td>
+        <td>Create practice quizzes tailored to topics and difficulty.</td>
+        <td>
+          Input topic + coverage; generate multi-format questions with answers
+          and explanations.
+        </td>
+        <td>Quiz builder UI, preview, attempt mode, timed quizzes.</td>
+        <td>Question bank, scoring, reporting, export to LMS formats.</td>
+        <td>
+          LLMs generate plausible questions and answers; quality checks via
+          heuristics.
+        </td>
+        <td>Targeted practice, immediate feedback, scalable assessments.</td>
+      </tr>
+      <tr>
+        <td><strong>Exam Generator</strong></td>
+        <td>Generate proctored-style exams aligned to syllabus.</td>
+        <td>Template-driven exam generation with randomized variants.</td>
+        <td>Exam UI, proctoring hooks (optional), timer, submission.</td>
+        <td>Secure storage, submission validation, plagiarism scanning.</td>
+        <td>
+          LLMs draft questions; anti-cheat via similarity detection and proctor
+          signals.
+        </td>
+        <td>High-quality, varied assessments at scale.</td>
+      </tr>
+      <tr>
+        <td><strong>Study Planner</strong></td>
+        <td>
+          Schedule study sessions optimized for retention and availability.
+        </td>
+        <td>
+          Combines user calendar, deadlines, and spaced repetition to create a
+          prioritized schedule.
+        </td>
+        <td>Planner UI, drag/drop slots, calendar sync, notifications.</td>
+        <td>
+          Scheduler engine, conflict resolution, persistent plans,
+          notifications.
+        </td>
+        <td>
+          AI suggests optimal study cadence based on mastery and forgetting
+          curve.
+        </td>
+        <td>Better time management and measurable progress.</td>
+      </tr>
+      <tr>
+        <td><strong>Timetable System</strong></td>
+        <td>Organize regular classes, study blocks, and events.</td>
+        <td>
+          Recurring slots, calendar sync, class metadata, attendance tracking.
+        </td>
+        <td>Timetable UI, slot edits, reminders.</td>
+        <td>
+          CRUD for timetables, conflict detection, optimization endpoints.
+        </td>
+        <td>AI can propose optimal weekly timetables for workload balance.</td>
+        <td>Consistent study rhythm and improved productivity.</td>
+      </tr>
+      <tr>
+        <td><strong>Focus Sessions</strong></td>
+        <td>Timed focus intervals with ambient cues and micro-goals.</td>
+        <td>Pomodoro-style sessions, optional background sounds, telemetry.</td>
+        <td>Session timer, goals, progress widget.</td>
+        <td>Session logs, streak tracking, analytics integration.</td>
+        <td>AI-provided micro-coaching and productivity advice.</td>
+        <td>Improved concentration and habit building.</td>
+      </tr>
+      <tr>
+        <td><strong>Document Uploads & AI Summaries</strong></td>
+        <td>Process study materials and produce condensed notes.</td>
+        <td>
+          Upload docs; system extracts text, splits into chunks, and
+          summarizes/contextualizes.
+        </td>
+        <td>Upload widget, summary viewer, highlights, export.</td>
+        <td>File storage, extraction workers, chunking and vectorization.</td>
+        <td>
+          LLMs for summarization; vector store for retrieval and RAG answers.
+        </td>
+        <td>Faster review of large materials and context-rich chat answers.</td>
+      </tr>
+      <tr>
+        <td><strong>Learning Analytics</strong></td>
+        <td>Provide actionable insights to learners and administrators.</td>
+        <td>Collect progress metrics and generate reports and alerts.</td>
+        <td>Dashboards, reports, export options.</td>
+        <td>Metrics pipeline, aggregation, cohort analysis endpoints.</td>
+        <td>AI identifies at-risk students and suggests interventions.</td>
+        <td>Data-driven decisions for learners and educators.</td>
+      </tr>
+      <tr>
+        <td><strong>User Dashboard</strong></td>
+        <td>Centralized hub for tasks, progress, and recommendations.</td>
+        <td>
+          Aggregates sessions, upcoming tasks, recent activity, and suggestions.
+        </td>
+        <td>Widgets, notifications, progress rings, quick actions.</td>
+        <td>Aggregates multiple services, caches summary views.</td>
+        <td>Personalized recommendations engine for next-study actions.</td>
+        <td>Clear focus and increased engagement.</td>
+      </tr>
+      <tr>
+        <td><strong>Notifications</strong></td>
+        <td>Inform users about schedules, deadlines, and performance.</td>
+        <td>
+          Push/email/in-app notifications with user preferences and retry logic.
+        </td>
+        <td>Preference center, in-app toasts, push prompt.</td>
+        <td>Notification orchestration, TTL, retry queue, templates.</td>
+        <td>AI for smart reminders and contextual nudges.</td>
+        <td>Improved retention and reduced missed sessions.</td>
+      </tr>
+      <tr>
+        <td><strong>Authentication & Security</strong></td>
+        <td>Protect user data and support enterprise policies.</td>
+        <td>Multi-factor options, session management, role-based access.</td>
+        <td>Login, signup, OTP flows, single sign-on hooks.</td>
+        <td>JWT refresh/access tokens, secure cookies, session storage.</td>
+        <td>AI for fraud detection and anomaly alerts.</td>
+        <td>Secure, auditable access for individuals and institutions.</td>
+      </tr>
+      <tr>
+        <td><strong>Onboarding System</strong></td>
+        <td>
+          Collect initial profile and learning goals to personalize experience.
+        </td>
+        <td>
+          Progressive onboarding with autosave, draft persistence, and
+          pre-signup personalization.
+        </td>
+        <td>Multi-step forms, progress indicators, draft recovery.</td>
+        <td>Draft store, autosave endpoints, TTL management.</td>
+        <td>
+          AI maps profile responses to curriculum and recommends study paths.
+        </td>
+        <td>Faster personalization and higher likelihood of engagement.</td>
+      </tr>
+      <tr>
+        <td><strong>Admin Dashboard</strong></td>
+        <td>Manage users, content, analytics, and system health.</td>
+        <td>
+          User management, content review, analytics filters, role controls.
+        </td>
+        <td>Admin UI, bulk actions, audit logs.</td>
+        <td>Admin APIs, RBAC, audit trails, bulk processing jobs.</td>
+        <td>
+          AI to highlight anomalous behavior and recommend content improvements.
+        </td>
+        <td>Operational efficiency and data-driven governance.</td>
+      </tr>
+    </table>
+
+    <div class="page-break"></div>
+
+    <!-- Onboarding & Personalization -->
+    <h1>Onboarding & Personalization System</h1>
+    <div class="section">
+      <h2>Onboarding Workflow</h2>
+      <ol>
+        <li>
+          Landing & initial prompt: short survey capturing education level,
+          curriculum, key subjects, goals, and study availability.
+        </li>
+        <li>
+          Progressive profiling: follow-up micro-questions based on earlier
+          answers (e.g. preferred learning style, strengths, weak topics).
+        </li>
+        <li>
+          Autosave & draft persistence: partial answers saved server-side with
+          TTL; draft linked to account on signup.
+        </li>
+        <li>
+          AI mapping: responses passed through personalization engine to
+          generate an initial study path, prioritized subjects, and suggested
+          micro-goals.
+        </li>
+        <li>
+          Dashboard personalization: recommended widgets, suggested study
+          sessions, and prioritized content loaded into the user dashboard.
+        </li>
+      </ol>
+
+      <h2>Education-level Personalization</h2>
+      <p>
+        The onboarding captures educational tier (e.g., A-Level, University) and
+        maps to curriculum templates. For example:
+      </p>
+      <ul>
+        <li>
+          <strong>A-Level:</strong> subject modules broken into topics,
+          recommended exam-style practice, time-to-exam scheduling.
+        </li>
+        <li>
+          <strong>University:</strong> course/module mapping, lecture notes
+          ingestion, research assistance and assignment support.
+        </li>
+        <li>
+          <strong>Medical/Professional:</strong> case-based practice,
+          high-stakes exam simulation, spaced-retention for critical facts.
+        </li>
+      </ul>
+
+      <h2>AI Personalization Logic</h2>
+      <p>
+        Personalization engine uses a mix of rule-based templates and
+        model-based recommendations:
+      </p>
+      <ul>
+        <li>
+          User model tracks mastery per topic, engagement signals, and time
+          availability.
+        </li>
+        <li>
+          AI suggests study cadence and content formats (explainers, flashcards,
+          quizzes) based on learning profile.
+        </li>
+        <li>
+          Adaptive difficulty and content selection updated after each
+          assessment and session.
+        </li>
+      </ul>
+
+      <h2>Autosave Onboarding & Draft Linking</h2>
+      <p>Autosave strategy:</p>
+      <ul>
+        <li>
+          Client-side debounce; changes sent to `/api/onboarding/drafts` for
+          anonymous users.
+        </li>
+        <li>
+          Server drafts have TTL and are linked to account at signup when
+          `draftId` is supplied.
+        </li>
+        <li>
+          Conflict resolution favors latest complete draft and preserves partial
+          answers for recovery.
+        </li>
+      </ul>
+
+      <h2>Example Experiences</h2>
+      <h3>A-Level Student</h3>
+      <p>
+        Onboarding identifies next exam date, core topics (Physics, Maths), and
+        weak areas. AI schedules topic-focused quizzes and daily flashcards
+        prioritized by exam proximity.
+      </p>
+
+      <h3>University Student</h3>
+      <p>
+        Onboarding maps modules and deadlines. AI suggests weekly study blocks,
+        provides reading summaries, and answers assignment-related queries.
+      </p>
+
+      <h3>Medical Student</h3>
+      <p>
+        Onboarding focuses on high-yield topics, case-based scenarios, and
+        spaced repetition for critical facts; AI generates exam simulations and
+        clinical vignettes.
+      </p>
+
+      <h3>Software Engineering Student</h3>
+      <p>
+        Onboarding collects preferred languages, courses, and career goals; AI
+        suggests project-based learning tasks, code-review style quizzes, and
+        practical exercises.
+      </p>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- System Architecture -->
+    <h1>System Architecture</h1>
+    <div class="section">
+      <h2>High-Level Overview</h2>
+      <p>
+        DzidzaAI is built as a modular, microservice-capable architecture with a
+        responsive SPA frontend, a Node.js API backend, worker queues for heavy
+        processing, and external AI providers behind an abstraction layer.
+      </p>
+
+      <h2>Frontend Architecture</h2>
+      <ul>
+        <li>React + Vite SPA with route-based code-splitting.</li>
+        <li>
+          TanStack Router for declarative routing; Zustand for lightweight app
+          state.
+        </li>
+        <li>
+          Component-driven design system using Tailwind for utility-first
+          styling.
+        </li>
+        <li>
+          Progressive enhancement with offline cache for drafted onboarding
+          content.
+        </li>
+      </ul>
+
+      <h2>Backend Architecture</h2>
+      <ul>
+        <li>
+          Express.js API layer handling auth, user management, onboarding, and
+          analytics.
+        </li>
+        <li>
+          Modular controllers and services pattern with clear separation:
+          aiService, documentProcessingService, vectorService.
+        </li>
+        <li>
+          Worker processes (BullMQ) for document extraction, vectorization,
+          large-model calls orchestration, and notification delivery.
+        </li>
+      </ul>
+
+      <h2>AI Architecture</h2>
+      <ul>
+        <li>
+          Provider abstraction layer supporting OpenAI, Gemini, and DeepSeek.
+        </li>
+        <li>
+          Request router with per-request model selection, prompt templates,
+          safety filters, and cost controls.
+        </li>
+        <li>
+          RAG (Retrieval-Augmented Generation) using a vector store and passage
+          retrieval for grounded answers.
+        </li>
+      </ul>
+
+      <h2>Authentication Flow</h2>
+      <div class="diagram">
+        User -> SPA -> /auth/signup (email) -> server creates user + OTP ->
+        email OTP -> /auth/verify-email -> server issues accessToken (JWT) +
+        refresh cookie Tokens: accessToken (short-lived), refreshToken (httpOnly
+        cookie) Session store for refresh token revocation and audit
+      </div>
+
+      <h2>API Structure</h2>
+      <ul>
+        <li>
+          RESTful endpoints under `/api/*` with JSON bodies and
+          OpenAPI-compatible schema.
+        </li>
+        <li>
+          Key modules: `/auth`, `/users`, `/onboarding`, `/quizzes`,
+          `/documents`, `/analytics`.
+        </li>
+      </ul>
+
+      <h2>Routing & State Management</h2>
+      <ul>
+        <li>
+          Client routing via TanStack Router; guarded routes for onboarding and
+          protected content.
+        </li>
+        <li>
+          State: ephemeral UI state in React, persisted session/user state in
+          Zustand; server-side canonical state in MongoDB.
+        </li>
+      </ul>
+
+      <h2>Worker & Queue Architecture</h2>
+      <p>
+        Heavy tasks (document parsing, vectorization, long-running AI jobs) run
+        in separate workers coordinated via Redis + BullMQ. Workers can
+        autoscale independently.
+      </p>
+
+      <h2>Storage Architecture</h2>
+      <ul>
+        <li>Primary database: MongoDB for flexible document schemas.</li>
+        <li>
+          Vector store: managed or self-hosted vector DB (e.g., Pinecone,
+          Milvus, or RedisVector/RedisAI).
+        </li>
+        <li>
+          Object storage: AWS S3 (or compatible) for document storage and user
+          uploads.
+        </li>
+        <li>
+          Cache: Redis for short-lived data, session state, counters, and
+          rate-limiting buckets.
+        </li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Tech Stack -->
+    <h1>Tech Stack</h1>
+    <div class="section">
+      <h2>Frontend</h2>
+      <table class="mini">
+        <tr>
+          <th>Technology</th>
+          <th>Why</th>
+        </tr>
+        <tr>
+          <td>React</td>
+          <td>Large ecosystem, component model, wide talent pool.</td>
+        </tr>
+        <tr>
+          <td>Vite</td>
+          <td>Fast dev server and optimized builds.</td>
+        </tr>
+        <tr>
+          <td>Zustand</td>
+          <td>Lightweight global state, simple API.</td>
+        </tr>
+        <tr>
+          <td>TanStack Router</td>
+          <td>Modern routing with fine-grained control.</td>
+        </tr>
+        <tr>
+          <td>Tailwind CSS</td>
+          <td>Rapid UI development and consistent design tokens.</td>
+        </tr>
+      </table>
+
+      <h2>Backend</h2>
+      <table class="mini">
+        <tr>
+          <th>Technology</th>
+          <th>Why</th>
+        </tr>
+        <tr>
+          <td>Node.js & Express</td>
+          <td>Asynchronous IO, fast iteration, large package ecosystem.</td>
+        </tr>
+        <tr>
+          <td>MongoDB</td>
+          <td>Flexible document models for varied academic content.</td>
+        </tr>
+        <tr>
+          <td>Redis</td>
+          <td>Caching, rate-limiting, queues coordination.</td>
+        </tr>
+        <tr>
+          <td>BullMQ</td>
+          <td>
+            Robust job queues with retry/backoff and concurrency controls.
+          </td>
+        </tr>
+        <tr>
+          <td>Docker</td>
+          <td>Consistent environments and simplified deployment.</td>
+        </tr>
+      </table>
+
+      <h2>AI</h2>
+      <table class="mini">
+        <tr>
+          <th>Technology</th>
+          <th>Why</th>
+        </tr>
+        <tr>
+          <td>OpenAI / Gemini / DeepSeek</td>
+          <td>
+            Multi-provider abstraction improves reliability and cost control.
+          </td>
+        </tr>
+        <tr>
+          <td>Vector DB (Pinecone/Milvus)</td>
+          <td>Efficient semantic retrieval for RAG.</td>
+        </tr>
+      </table>
+
+      <h2>Testing & DevOps</h2>
+      <ul>
+        <li>
+          Vitest/Jest for unit tests, Playwright for E2E, Supertest for API
+          integration.
+        </li>
+        <li>
+          GitHub Actions for CI/CD, container builds, and integration tests.
+        </li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Database Architecture -->
+    <h1>Database Architecture</h1>
+    <div class="section">
+      <h2>Core Schemas</h2>
+      <h3>User Schema</h3>
+      <p>
+        Key fields:
+        <span class="code"
+          >_id, name, email, hashedPassword, roles, educationLevel, subjects[],
+          academicProfile, onboardingCompleted, preferences, createdAt,
+          updatedAt</span
+        >
+      </p>
+
+      <h3>Onboarding Schema</h3>
+      <p>
+        Fields:
+        <span class="code"
+          >draftId, data (JSON), userId|null, completed(bool), expiresAt</span
+        >
+        — TTL index on <span class="code">expiresAt</span>.
+      </p>
+
+      <h3>Academic Profile</h3>
+      <p>
+        Fields: mastery per topic, selected curriculum, targetExamDate,
+        studyAvailability, preferredLearningStyle.
+      </p>
+
+      <h3>Subjects / Courses Schema</h3>
+      <p>Fields: subjectId, name, topics[], syllabusMapping, difficultyTags.</p>
+
+      <h3>Quizzes / Exams Schema</h3>
+      <p>
+        Questions stored with metadata: questionId, stem, options,
+        correctAnswer, rationale, difficulty, tags, vectorEmbedding(optional).
+      </p>
+
+      <h3>Flashcards Schema</h3>
+      <p>
+        Fields: cardId, front, back, subject, nextDueDate, easeFactor, interval,
+        reviewHistory.
+      </p>
+
+      <h3>Analytics Schema</h3>
+      <p>
+        Event-driven metrics: user events, session durations, quiz attempts,
+        pass/fail, topic mastery deltas, cohort aggregates, stored as
+        time-series or pre-aggregated collections.
+      </p>
+    </div>
+
+    <h2>Relationships & Indexing</h2>
+    <ul>
+      <li>
+        Denormalize frequently accessed profile summaries into the user document
+        for read efficiency.
+      </li>
+      <li>
+        Index on userId, subject, topic, and examDate for query performance.
+      </li>
+      <li>
+        Vector embeddings stored in vector DB; store pointers and minimal
+        metadata in Mongo for join queries.
+      </li>
+    </ul>
+
+    <h2>Scalability Considerations</h2>
+    <ul>
+      <li>Shard MongoDB by tenant/region for enterprise customers.</li>
+      <li>
+        Use pre-aggregated metrics for analytics dashboards to reduce real-time
+        load.
+      </li>
+      <li>
+        Offload heavy ML embeddings and similarity lookups to vector DB
+        services.
+      </li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <!-- AI System Architecture -->
+    <h1>AI System Architecture</h1>
+    <div class="section">
+      <h2>Provider Abstraction & Multi-Provider Support</h2>
+      <p>
+        All AI calls are routed through an abstraction layer (`aiService`) that
+        supports providers like OpenAI, Gemini, and DeepSeek. The router
+        includes policy for model selection, failover, and fallback to cheaper
+        or on-prem models.
+      </p>
+
+      <h2>Failover & Cost Controls</h2>
+      <ul>
+        <li>
+          Primary model selection based on task (explainers use larger models;
+          short answers use smaller models).
+        </li>
+        <li>
+          Failover chains with configurable retries and fallback providers.
+        </li>
+        <li>Rate-limiting and costing heuristics to avoid runaway bills.</li>
+      </ul>
+
+      <h2>Prompt Engineering & Safety</h2>
+      <ul>
+        <li>
+          Standardized prompt templates stored centrally; tokenized inputs for
+          performance monitoring.
+        </li>
+        <li>
+          Safety filters and output validators (toxicity, hallucination
+          detection heuristics, source attribution for RAG responses).
+        </li>
+      </ul>
+
+      <h2>Personalization Engine</h2>
+      <p>
+        Maintains per-user model of mastery; updates after quizzes and sessions.
+        Produces recommended next actions and adapts content difficulty.
+      </p>
+
+      <h2>AI-Generated Content Pipeline</h2>
+      <ol>
+        <li>Request for generation (quiz/exam/summary) enters API.</li>
+        <li>Server-side validation and parameters normalization.</li>
+        <li>RAG: retrieve supporting context from vector DB.</li>
+        <li>LLM call to generate draft content.</li>
+        <li>
+          Validator & degenerate-check: heuristics ensure syntactic correctness
+          and answer keys consistency.
+        </li>
+        <li>Persist to question bank and surface to UI.</li>
+      </ol>
+
+      <h2>Caching</h2>
+      <p>
+        Cache frequent prompts and generated content (with TTL) in Redis to
+        reduce repeated LLM calls for identical inputs and reduce cost.
+      </p>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Security Architecture -->
+    <h1>Security Architecture</h1>
+    <div class="section">
+      <h2>Authentication & Session Management</h2>
+      <ul>
+        <li>
+          Short-lived access tokens (JWT) for APIs; Refresh token stored as
+          httpOnly, secure cookie.
+        </li>
+        <li>
+          Refresh token rotation and revocation lists for logout and device
+          management.
+        </li>
+        <li>Optional SSO integrations (SAML / OIDC) for institutions.</li>
+      </ul>
+
+      <h2>API Protection & Validation</h2>
+      <ul>
+        <li>
+          Input validation with Zod/Joi for all endpoints; strict schema
+          enforcement.
+        </li>
+        <li>
+          Rate-limiting per IP and per user for write-heavy endpoints like AI
+          calls.
+        </li>
+        <li>
+          CSRF protection for state-changing requests where cookies are used.
+        </li>
+      </ul>
+
+      <h2>File Upload Security</h2>
+      <ul>
+        <li>Virus scanning and content-type validation on upload.</li>
+        <li>Presigned S3 uploads to avoid direct server storage limits.</li>
+        <li>Chunked uploads for large files with integrity checks.</li>
+      </ul>
+
+      <h2>AI Output Validation</h2>
+      <ul>
+        <li>
+          Ground answers with source passages via RAG; provide citation
+          metadata.
+        </li>
+        <li>
+          Run factual-consistency checks and automatic flagging for human review
+          of high-stakes content.
+        </li>
+      </ul>
+
+      <h2>Operational Security</h2>
+      <ul>
+        <li>
+          Secrets in vault; environment-specific keys; least-privilege IAM for
+          cloud resources.
+        </li>
+        <li>
+          Monitoring and alerting for anomalous usage patterns and abnormal LLM
+          costs.
+        </li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- UI/UX Design System -->
+    <h1>UI/UX Design System</h1>
+    <div class="section">
+      <h2>Design Principles</h2>
+      <ul>
+        <li>
+          Premium minimalism — clean typography, generous spacing, and
+          restrained color palette.
+        </li>
+        <li>
+          Focus-first layout — content is center stage, controls are contextual
+          and minimal.
+        </li>
+        <li>
+          Accessibility-first — WCAG 2.1 AA compliance target (keyboard nav,
+          semantic HTML, ARIA labels).
+        </li>
+      </ul>
+
+      <h2>Light & Dark Modes</h2>
+      <p>
+        Two theme palettes with token-driven colors and high-contrast
+        alternatives. No heavy gradients — preference for subtle surface layers
+        and glassmorphism accents where appropriate.
+      </p>
+
+      <h2>Typography & Spacing</h2>
+      <ul>
+        <li>
+          Typeface: system sans stack for performance; headings use a stronger
+          weight for hierarchy.
+        </li>
+        <li>
+          Spacing system: 4px baseline grid scaled by 4/8/12 units to ensure
+          consistent rhythm.
+        </li>
+      </ul>
+
+      <h2>Component Architecture</h2>
+      <ul>
+        <li>Atomic components: buttons, inputs, cards, modals, lists.</li>
+        <li>
+          Composed patterns: onboarding wizard, quiz builder, document viewer.
+        </li>
+        <li>
+          Design tokens managed centrally to allow theme and branding changes
+          via variables.
+        </li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- User Workflows -->
+    <h1>User Workflows</h1>
+    <div class="section">
+      <h2>First-time Signup</h2>
+      <ol>
+        <li>
+          User visits landing → chooses education tier → begins onboarding
+          wizard.
+        </li>
+        <li>Anonymous autosave drafts to the server while onboarding.</li>
+        <li>
+          User completes onboarding and chooses to create account → signup with
+          `draftId` links draft.
+        </li>
+        <li>
+          OTP verification → user is authenticated and onboarded profile
+          attached to account.
+        </li>
+      </ol>
+
+      <h2>Onboarding</h2>
+      <p>
+        Progressive multi-step flow with autosave, preview of recommended plan,
+        and immediate start actions (first study session or quick quiz).
+      </p>
+
+      <h2>AI Tutoring</h2>
+      <ol>
+        <li>User asks question or starts a topic session.</li>
+        <li>
+          RAG used to fetch contextual sources and LLM generates structured
+          explanations and practice items.
+        </li>
+        <li>Feedback loop updates mastery model.</li>
+      </ol>
+
+      <h2>Quiz & Flashcard Generation</h2>
+      <p>
+        User selects topic(s) -> chooses format -> system generates
+        questions/flashcards -> user attempts -> results update mastery and
+        schedule.
+      </p>
+
+      <h2>Document Uploads</h2>
+      <p>
+        User uploads documents -> worker extracts text -> vectorizes chunks ->
+        user can query documents and generate summaries or quiz items from
+        content.
+      </p>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Scalability & Performance -->
+    <h1>Scalability & Performance</h1>
+    <div class="section">
+      <h2>Scaling Strategies</h2>
+      <ul>
+        <li>
+          API horizontally scalable behind a load balancer; stateless services
+          where possible.
+        </li>
+        <li>
+          Worker fleets scale independently for processing spikes; autoscaling
+          based on queue depth.
+        </li>
+        <li>
+          Redis caching for hot reads (dashboard summaries, recent sessions).
+        </li>
+        <li>
+          Vector DB optimized for approximate nearest neighbor (ANN) queries
+          with sharding as data grows.
+        </li>
+      </ul>
+
+      <h2>Performance Optimizations</h2>
+      <ul>
+        <li>
+          Cache LLM responses for identical prompts for short TTL to save cost.
+        </li>
+        <li>
+          Use incremental indexing for document ingestion; stream chunks to
+          vector DB.
+        </li>
+        <li>
+          Precompute user summary cards for dashboard to avoid heavy joins on
+          request.
+        </li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Future Roadmap -->
+    <h1>Future Roadmap</h1>
+    <div class="section">
+      <h2>12–18 Month Horizon</h2>
+      <ul>
+        <li>Mobile apps (iOS & Android) with offline flashcard sync.</li>
+        <li>Voice-based AI tutoring for conversational practice.</li>
+        <li>Collaborative study groups and shared flashcards.</li>
+        <li>Advanced analytics and cohort reporting for institutions.</li>
+        <li>Gamification / badges and reward systems for motivation.</li>
+        <li>Deep LMS integrations (LTI / Canvas / Moodle).</li>
+      </ul>
+
+      <h2>24+ Months</h2>
+      <ul>
+        <li>
+          Adaptive curricula for institutions with teacher-assist workflows.
+        </li>
+        <li>Localized models for low-latency regional deployments.</li>
+        <li>Proprietary models fine-tuned for domain-specific curricula.</li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Business & Market Value -->
+    <h1>Business & Market Value</h1>
+    <div class="section">
+      <h2>Target Audience</h2>
+      <ul>
+        <li>
+          Students (K-12, higher ed) seeking personalization and practice.
+        </li>
+        <li>Working professionals preparing for certifications.</li>
+        <li>
+          Educational institutions and learning centers seeking scalable
+          tutoring solutions.
+        </li>
+      </ul>
+
+      <h2>Market & Monetization</h2>
+      <p>
+        Global EdTech market with strong tailwinds; monetization via
+        subscription tiers, institutional licensing, premium content bundles,
+        and API access for third-party integrations.
+      </p>
+
+      <h2>Competitive Advantages</h2>
+      <ul>
+        <li>
+          End-to-end platform combining tutoring, content generation, and
+          analytics.
+        </li>
+        <li>Multi-provider AI abstraction reduces single-vendor risk.</li>
+        <li>
+          Onboarding-first personalization that increases retention and lifetime
+          value.
+        </li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Conclusion -->
+    <h1>Conclusion</h1>
+    <div class="section">
+      <p>
+        DzidzaAI represents a pragmatic, scalable approach to bringing
+        personalized education to a broad audience. By combining robust
+        engineering, thoughtful UX, and responsible AI practices, the platform
+        can improve learning outcomes while offering a compelling commercial
+        opportunity. With a clear roadmap and enterprise-grade architecture,
+        DzidzaAI is well-positioned to become a trusted academic partner and
+        scalable tutoring marketplace.
+      </p>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Final Summaries & Assessments -->
+    <h1>Appendix — Summaries & Assessments</h1>
+    <h2>Executive Summary</h2>
+    <p class="small">(One-page condensed takeaways)</p>
+    <table class="summary-table">
+      <tr>
+        <th>Aspect</th>
+        <th>Summary</th>
+      </tr>
+      <tr>
+        <td>Product</td>
+        <td>
+          AI-powered personalized tutoring, assessment generation, and
+          analytics.
+        </td>
+      </tr>
+      <tr>
+        <td>Market</td>
+        <td>
+          Large, growing EdTech sector with demand for personalization at scale.
+        </td>
+      </tr>
+      <tr>
+        <td>Business Model</td>
+        <td>Freemium consumer + institutional licensing + API monetization.</td>
+      </tr>
+      <tr>
+        <td>Tech Readiness</td>
+        <td>
+          Prototype/early product with key modules implemented; integration and
+          scaling required for enterprise.
+        </td>
+      </tr>
+    </table>
+
+    <h2>Technical Summary</h2>
+    <p class="small">Architecture and readiness notes</p>
+    <ul>
+      <li>
+        Modular Node.js backend, React frontend, vector retrieval for RAG, AI
+        provider abstraction.
+      </li>
+      <li>Worker-based processing with Redis/BullMQ for heavy tasks.</li>
+      <li>
+        Security baseline: JWT + refresh rotation, schema validation, and file
+        upload safeguards.
+      </li>
+    </ul>
+
+    <h2>Product Summary</h2>
+    <ul>
+      <li>
+        Comprehensive feature set addressing both learner and educator needs.
+      </li>
+      <li>
+        Onboarding-first approach increases personalization and retention.
+      </li>
+      <li>
+        Roadmap prioritizes mobile and voice interactions for broader reach.
+      </li>
+    </ul>
+
+    <h2>Business Summary</h2>
+    <ul>
+      <li>
+        Multiple monetization levers and B2B opportunities with institutions and
+        publishers.
+      </li>
+      <li>
+        Scalable architecture supports global expansion and enterprise
+        contracts.
+      </li>
+    </ul>
+
+    <h2>Final Recommendations</h2>
+    <ol>
+      <li>
+        Prioritize OTP/email & onboarding integration testing to secure the
+        conversion funnel.
+      </li>
+      <li>
+        Implement cost-control and model-fallback policies before heavy user
+        acquisition.
+      </li>
+      <li>
+        Invest in mobile apps and voice interfaces as the next major growth
+        drivers.
+      </li>
+      <li>
+        Strengthen analytics and reporting to serve institutional customers.
+      </li>
+    </ol>
+
+    <h2>Production Readiness Assessment</h2>
+    <p>Readiness level: Beta → Production steps required:</p>
+    <ul>
+      <li>Comprehensive security review and threat model.</li>
+      <li>Operational playbooks for incident response and cost spikes.</li>
+      <li>
+        Larger scale load testing and autoscaling configurations for worker
+        fleets and vector DB.
+      </li>
+    </ul>
+
+    <h2>Scalability Assessment</h2>
+    <ul>
+      <li>
+        Architecture supports horizontal scaling; worker isolation reduces blast
+        radius.
+      </li>
+      <li>
+        Vector DB and caching must be scaled carefully with monitoring on
+        latency and costs.
+      </li>
+    </ul>
+
+    <h2>Security Assessment</h2>
+    <ul>
+      <li>
+        Authentication and session management patterns are robust but require
+        secrets centralization and rotation.
+      </li>
+      <li>
+        AI safety requires continuous monitoring and human-in-the-loop checks
+        for high-stakes content.
+      </li>
+    </ul>
+
+    <div class="footer center">
+      DzidzaAI — © 2026 — Prepared for internal review, investor briefings, and
+      academic evaluation.
+    </div>
+  </body>
+</html>

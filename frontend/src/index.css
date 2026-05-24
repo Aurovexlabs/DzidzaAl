@@ -1,0 +1,258 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #2f6fed;
+  --color-primary-dark: #204fb6;
+  --color-secondary: #12a594;
+  --color-secondary-light: #0f8e80;
+  --color-accent: #d39b2a;
+
+  --color-bg-light: #f7f8fa;
+  --color-bg-dark: #0f1115;
+
+  --color-text-primary: #111827;
+  --color-text-secondary: #5b6472;
+
+  --font-sans: "Manrope", system-ui, sans-serif;
+  --font-serif: "Fraunces", Georgia, serif;
+
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+
+  --shadow-soft:
+    0 1px 2px rgba(16, 24, 40, 0.02), 0 10px 28px rgba(16, 24, 40, 0.06);
+
+  --shadow-glass:
+    0 0 0 1px rgba(255, 255, 255, 0.15), 0 16px 40px 0 rgba(8, 15, 30, 0.08);
+}
+
+/* ─── LIGHT THEME (default) ──────────────────────────────────────────────── */
+:root {
+  --ink: #111827;
+  --ink2: #374151;
+  --ink3: #5b6472;
+  --bg: #f7f8fa;
+  --surface: rgba(255, 255, 255, 0.88);
+  --surface2: #edf1f5;
+  --accent: #2f6fed;
+  --accent2: #12a594;
+  --accent3: #0f8e80;
+  --warn: #d39b2a;
+  --danger: #dc4d4d;
+  --border: rgba(47, 111, 237, 0.1);
+  --border2: rgba(15, 23, 42, 0.08);
+  --sidebar-bg: rgba(255, 255, 255, 0.9);
+  --sidebar-text: #111827;
+  --sidebar-text-muted: #64748b;
+  --sidebar-border: rgba(15, 23, 42, 0.08);
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --input-bg: rgba(255, 255, 255, 0.95);
+  --scrollbar-thumb: rgba(47, 111, 237, 0.2);
+  --hero-bg: #f7f8fa;
+}
+
+/* ─── DARK THEME ─────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --ink: #f5f7fb;
+  --ink2: #e2e8f0;
+  --ink3: #95a0af;
+  --bg: #0f1115;
+  --surface: rgba(21, 24, 33, 0.86);
+  --surface2: #1b1f2a;
+  --accent: #4c86ff;
+  --accent2: #3ac5b2;
+  --accent3: #2aa393;
+  --warn: #d8a23a;
+  --danger: #f07d7d;
+  --border: rgba(76, 134, 255, 0.12);
+  --border2: rgba(255, 255, 255, 0.06);
+  --sidebar-bg: rgba(15, 17, 21, 0.92);
+  --sidebar-text: #f5f7fb;
+  --sidebar-text-muted: #95a0af;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --card-bg: rgba(21, 24, 33, 0.9);
+  --input-bg: rgba(19, 22, 30, 0.92);
+  --scrollbar-thumb: rgba(76, 134, 255, 0.28);
+  --hero-bg: #0f1115;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    transition:
+      background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+      color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.03em;
+    font-weight: 700;
+  }
+
+  /* Refined Selection */
+  ::selection {
+    background-color: rgba(37, 99, 235, 0.15);
+    color: var(--accent);
+  }
+
+  /* Theme transition */
+  *,
+  *::before,
+  *::after {
+    transition:
+      background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg border border-white/20 dark:border-white/10;
+    box-shadow: var(--shadow-glass);
+  }
+
+  .text-gradient {
+    color: var(--accent);
+    background: none !important;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    -webkit-text-fill-color: unset;
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 20px;
+    border: 1px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+}
+
+@layer components {
+  .prog-bar {
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .prog-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    background: var(--accent);
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow-soft);
+  }
+
+  /* Override gradient utility classes to enforce single-color design */
+  .bg-linear-to-br,
+  .bg-linear-to-r,
+  .bg-linear-to-b,
+  .bg-linear-to-t,
+  .bg-gradient-to-b,
+  .bg-gradient-to-r,
+  .bg-gradient-to-br,
+  .bg-gradient-to-t {
+    background-image: none !important;
+    background: var(--surface) !important;
+  }
+
+  /* Neutralize Tailwind from-*/
+  .from-primary,
+  .from-secondary,
+  .from-accent,
+  .to-primary,
+  .to-secondary,
+  .to-accent,
+  .via-primary,
+  .via-secondary {
+    background-image: none !important;
+  }
+
+  .input {
+    width: 100%;
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-family: var(--font-sans);
+    color: var(--ink);
+    background: var(--input-bg);
+    outline: none;
+    transition: all 0.18s ease !important;
+  }
+  .input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(47, 111, 237, 0.12);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .surface-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(14px);
+  }
+}
